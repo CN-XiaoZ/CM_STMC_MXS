@@ -11,3 +11,9 @@ A Startup project for coffee machine，include control and test code
 4. Test Debug Code ：For others debug this system.
 5. Python GUI Code : A GUI software code run in Windows.
 
+
+
+
+#### TODO
+
+1. Finish Test Debug Code.
