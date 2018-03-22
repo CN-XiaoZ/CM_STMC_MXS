@@ -17,3 +17,4 @@ A Startup project for coffee machine，include control and test code
 #### TODO
 
 1. Finish Test Debug Code.
+2. Finish test machine V1.0
