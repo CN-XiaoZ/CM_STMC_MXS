@@ -25,7 +25,8 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f10x_it.h"
-
+#include "string.h"
+#include "usart.h"
 /** @addtogroup STM32F10x_StdPeriph_Template
   * @{
   */
@@ -136,6 +137,7 @@ void PendSV_Handler(void)
   */
 void SysTick_Handler(void)
 {
+	
 }
 
 /******************************************************************************/
@@ -157,57 +159,70 @@ void SysTick_Handler(void)
 /**
   * @}
   */
- 
+uint8_t rx_buff[100] = {0};
 
 void USART1_IRQHandler(void)
 {	
-  static uint8_t rx_buff[100] = {0};
 	static uint8_t pointer = 0;
   static uint8_t LEN;
   uint8_t count=0;
 	uint8_t temp;
   uint8_t ERROR_FLAG=0;
   uint16_t sum=0; 
+	int i=0;
+		
 	if(USART_GetITStatus(USART1,USART_IT_RXNE)!=RESET)
 	{	
+		printf("1!\r\n");
     temp = USART1->DR;//收入一个信号
     if (pointer < 2)
 		{
-			rx_buff[pointer++] = temp;
+			printf("2!\r\n");
+			rx_buff[pointer++] = temp;output(rx_buff);
 			return;
 		}
     if (pointer == 2) //防止缺位
 		{
+			printf("3!\r\n");
 			if ((rx_buff[0] == 0x12) && (rx_buff[1] == 0x34))
 			{
-        rx_buff[pointer++] = temp;
+				printf("4!\r\n");
+        rx_buff[pointer++] = temp;	output(rx_buff);			
         LEN=temp;
+				printf("LEN:%d\r\n",LEN);
       }
 			else
 			{
+				printf("5!\r\n");
 				rx_buff[0] = rx_buff[1];
-				rx_buff[1] = temp;
+				rx_buff[1] = temp;			
 			}
 			return;
 		}
     if (pointer > 2)
 		{
+			printf("6!\r\n");
       if(pointer<LEN)
       {
-        rx_buff[pointer++] = temp;
+				printf("7!\r\n");
+        rx_buff[pointer++] = temp;	output(rx_buff);			
 			  if (pointer == LEN)
 			  {
+					printf("8!\r\n");
+//					printf("%x, %x",rx_buff[LEN-2], rx_buff[LEN-1]);
           //指令接收结束
           if(rx_buff[LEN]==0x2F&&rx_buff[LEN-1]==0x1F)
-          {s
-            for(count=2;count<LEN-3;count++)
+          {
+						printf("9!\r\n");
+            for(count=2;count<LEN-4;count++)
             {
               sum=rx_buff[count]+sum;
             }
-            if(sum==rx_buff[LEN-2])//验证校验
+            if(sum==rx_buff[LEN-3])//验证校验
             {
-
+						printf("10!\r\n");
             }
+						
           }
 
           //指令判断流程
@@ -219,16 +234,22 @@ void USART1_IRQHandler(void)
           //标志清空
           if(ERROR_FLAG==1)
           {
+						printf("11!\r\n");
             //发送接收错误指令 等待下一次接收
           }
+					printf("12!\r\n");
           pointer=0;
           memset(rx_buff,0,100*sizeof(uint8_t));
         }
+				else{
+						return;
+				}
       }
     }
 	}	
-  USART_ClearITPendingBit(USART6, USART_IT_RXNE);
-	USART_ClearFlag(USART6, USART_FLAG_RXNE); 
+	printf("13!\r\n");
+  USART_ClearITPendingBit(USART1, USART_IT_RXNE);
+	USART_ClearFlag(USART1, USART_FLAG_RXNE); 
 }
 
 /******************* (C) COPYRIGHT 2011 STMicroelectronics *****END OF FILE****/

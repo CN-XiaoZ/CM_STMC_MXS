@@ -99,5 +99,5 @@
 
 
 void USART_Config(void);
-
+void output(uint8_t *buff);
 #endif /* __USART_H */
