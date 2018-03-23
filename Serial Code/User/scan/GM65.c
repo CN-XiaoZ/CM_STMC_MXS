@@ -33,77 +33,75 @@
  */
 void GM65_SetDefault(void)
 {
-//    GM65_WriteCommand(0x0000,0x56);
-//    GM65_WriteCommand(0x0002,0x02);
-//    GM65_WriteCommand(0x0003,0x02);
-//    GM65_WriteCommand(0x0006,0xC8);
-//    GM65_WriteCommand(0x000D,0x10);
-//    GM65_WriteCommand(0x000E,0x20);
-//    GM65_WriteCommand(0x002C,0xA0);
-//    GM65_WriteCommand(0x0060,0x9A);
-//    GM65_WriteCommand(0x0062,0x02);
-//    GM65_WriteCommand(0x0063,0xFF);
-//    GM65_WriteCommand(0x0064,0xFF);
-//    GM65_WriteCommand(0x0081,0x20);
-//    GM65_WriteCommand(0x0082,0xDC);
-//    GM65_WriteCommand(0x0083,0xBA);
-//    GM65_SaveCommand();
+    //    GM65_WriteCommand(0x0000,0x56);
+    //    GM65_WriteCommand(0x0002,0x02);
+    //    GM65_WriteCommand(0x0003,0x02);
+    //    GM65_WriteCommand(0x0006,0xC8);
+    //    GM65_WriteCommand(0x000D,0x10);
+    //    GM65_WriteCommand(0x000E,0x20);
+    //    GM65_WriteCommand(0x002C,0xA0);
+    //    GM65_WriteCommand(0x0060,0x9A);
+    //    GM65_WriteCommand(0x0062,0x02);
+    //    GM65_WriteCommand(0x0063,0xFF);
+    //    GM65_WriteCommand(0x0064,0xFF);
+    //    GM65_WriteCommand(0x0081,0x20);
+    //    GM65_WriteCommand(0x0082,0xDC);
+    //    GM65_WriteCommand(0x0083,0xBA);
+    //    GM65_SaveCommand();
 }
 void GM65_RESET(void)
 {
-//    GM65_WriteCommand(0x00D9,0x55);
-//    delay_ms(1000);
+    //    GM65_WriteCommand(0x00D9,0x55);
+    //    delay_ms(1000);
     GM65_SetDefault();
 }
 void GM65_Send(uint8_t *command)
 {
     int count;
-    for(count=0;count<9;count++)
+    for (count = 0; count < 9; count++)
     {
-        UART4->DR=command[count];
-        while ((USART_GetFlagStatus(UART4, USART_FLAG_TXE) == RESET));
+        UART4->DR = command[count];
+        while ((USART_GetFlagStatus(UART4, USART_FLAG_TXE) == RESET))
+            ;
     }
 }
 
 void GM65_SCAN(void)
 {
-    
-
 }
-void GM65_ReadCommand(uint16_t Address,uint8_t Data)
+void GM65_ReadCommand(uint16_t Address, uint8_t Data)
 {
     int count;
     uint8_t command[9];
-    command[0]=0x7E;
-    command[1]=0x00;
-    command[2]=0x07;
-    command[3]=0x01;
-    command[4]=(uint8_t)(Address>>8);
-    command[5]=(uint8_t)(Address&0x00FF);
-    command[6]=Data;
-    command[7]=0xAB;
-    command[8]=0xCD;
+    command[0] = 0x7E;
+    command[1] = 0x00;
+    command[2] = 0x07;
+    command[3] = 0x01;
+    command[4] = (uint8_t)(Address >> 8);
+    command[5] = (uint8_t)(Address & 0x00FF);
+    command[6] = Data;
+    command[7] = 0xAB;
+    command[8] = 0xCD;
     GM65_Send(command);
-
 }
-void GM65_WriteCommand(uint8_t NumofData,uint16_t Address,uint8_t *data)
+void GM65_WriteCommand(uint8_t NumofData, uint16_t Address, uint8_t *data)
 {
-//    int count;
-//    uint8_t command[9];
-//    command[0]=0x7E;
-//    command[1]=0x00;
-//    command[2]=0x08;
-//    command[3]=0x01;
-//    command[4]=(uint8_t)(Address>>8);
-//    command[5]=(uint8_t)(Address&0x00FF);
-//    command[6]=data;
-//    command[7]=0xAB;
-//    command[8]=0xCD;
-//    GM65_Send(command);
+    //    int count;
+    //    uint8_t command[9];
+    //    command[0]=0x7E;
+    //    command[1]=0x00;
+    //    command[2]=0x08;
+    //    command[3]=0x01;
+    //    command[4]=(uint8_t)(Address>>8);
+    //    command[5]=(uint8_t)(Address&0x00FF);
+    //    command[6]=data;
+    //    command[7]=0xAB;
+    //    command[8]=0xCD;
+    //    GM65_Send(command);
 }
 void GM65_SaveCommand(void)
 {
-//    int count;
-//    uint8_t command[9]={0x7E,0x00,0x09,0x01,0x00,0x00,0x00,0xDE,0xC8};
-//    GM65_Send();
+    //    int count;
+    //    uint8_t command[9]={0x7E,0x00,0x09,0x01,0x00,0x00,0x00,0xDE,0xC8};
+    //    GM65_Send();
 }
