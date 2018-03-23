@@ -1,37 +1,28 @@
 /**
   ******************************************************************************
-  * @file    bsp_usart.c
+  * @file    usart.c
   * @version V1.0
-  * @date    2013-xx-xx
-  * @brief   µ÷ÊÔÓÃµÄprintf´®¿Ú£¬ÖØ¶¨Ïòprintfµ½´®¿Ú
+  * @date    2018-1-4
+  * @brief   USARTé…ç½®
   ******************************************************************************
-  * @attention
-  *
-  * ÊµÑéÆ½Ì¨:±ü»ğ F103-°ÔµÀ STM32 ¿ª·¢°å 
-  * ÂÛÌ³    :http://www.firebbs.cn
-  * ÌÔ±¦    :https://fire-stm32.taobao.com
-  *
-  ******************************************************************************
-  */ 
-
-
+  */
 #include "./usart/usart.h"
 
 
  /**
-  * @brief  USART GPIO ÅäÖÃ,¹¤×÷²ÎÊıÅäÖÃ
-  * @param  ÎŞ
-  * @retval ÎŞ
+  * @brief  USART GPIO é…ç½®,å·¥ä½œå‚æ•°é…ç½®
+  * @param  æ— 
+  * @retval æ— 
   */
 void USART_Config(void)
 {
 	GPIO_InitTypeDef GPIO_InitStructure;
 	USART_InitTypeDef USART_InitStructure;
 	NVIC_InitTypeDef NVIC_InitStructure;
-	//USARTÊ±ÖÓÅäÖÃ
+	//USARTæ—¶é’Ÿé…ç½®
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_UART4|RCC_APB1Periph_UART5, ENABLE);
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA|RCC_APB2Periph_GPIOC|RCC_APB2Periph_USART1, ENABLE);
-	//USARTÖĞ¶ÏÉèÖÃ
+	//USARTä¸­æ–­è®¾ç½®
 	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
 	NVIC_InitStructure.NVIC_IRQChannel = USART1_IRQn;
 	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;
@@ -46,7 +37,7 @@ void USART_Config(void)
     NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;
     NVIC_InitStructure.NVIC_IRQChannelSubPriority = 3;                                                                 
     NVIC_Init(&NVIC_InitStructure);
-	//GPIOÉèÖÃ
+	//GPIOè®¾ç½®
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
 	//TX
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
@@ -81,22 +72,22 @@ void USART_Config(void)
 
 
 
-///ÖØ¶¨Ïòc¿âº¯Êıprintfµ½´®¿Ú£¬ÖØ¶¨Ïòºó¿ÉÊ¹ÓÃprintfº¯Êı
+///é‡å®šå‘cåº“å‡½æ•°printfåˆ°ä¸²å£ï¼Œé‡å®šå‘åå¯ä½¿ç”¨printfå‡½æ•°
 int fputc(int ch, FILE *f)
 {
-		/* ·¢ËÍÒ»¸ö×Ö½ÚÊı¾İµ½´®¿Ú */
+		/* å‘é€ä¸€ä¸ªå­—èŠ‚æ•°æ®åˆ°ä¸²å£ */
 		USART_SendData(DEBUG_USARTx, (uint8_t) ch);
 		
-		/* µÈ´ı·¢ËÍÍê±Ï */
+		/* ç­‰å¾…å‘é€å®Œæ¯• */
 		while (USART_GetFlagStatus(DEBUG_USARTx, USART_FLAG_TXE) == RESET);		
 	
 		return (ch);
 }
 
-///ÖØ¶¨Ïòc¿âº¯Êıscanfµ½´®¿Ú£¬ÖØĞ´Ïòºó¿ÉÊ¹ÓÃscanf¡¢getcharµÈº¯Êı
+///é‡å®šå‘cåº“å‡½æ•°scanfåˆ°ä¸²å£ï¼Œé‡å†™å‘åå¯ä½¿ç”¨scanfã€getcharç­‰å‡½æ•°
 int fgetc(FILE *f)
 {
-		/* µÈ´ı´®¿ÚÊäÈëÊı¾İ */
+		/* ç­‰å¾…ä¸²å£è¾“å…¥æ•°æ® */
 		while (USART_GetFlagStatus(DEBUG_USARTx, USART_FLAG_RXNE) == RESET);
 
 		return (int)USART_ReceiveData(DEBUG_USARTx);

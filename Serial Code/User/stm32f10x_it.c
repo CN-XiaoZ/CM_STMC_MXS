@@ -164,8 +164,10 @@ void USART1_IRQHandler(void)
   static uint8_t rx_buff[100] = {0};
 	static uint8_t pointer = 0;
   static uint8_t LEN;
+  uint8_t count=0;
 	uint8_t temp;
   uint8_t ERROR_FLAG=0;
+  uint16_t sum=0; 
 	if(USART_GetITStatus(USART1,USART_IT_RXNE)!=RESET)
 	{	
     temp = USART1->DR;//收入一个信号
@@ -196,6 +198,17 @@ void USART1_IRQHandler(void)
 			  if (pointer == LEN)
 			  {
           //指令接收结束
+          if(rx_buff[LEN]==0x2F&&rx_buff[LEN-1]==0x1F)
+          {s
+            for(count=2;count<LEN-3;count++)
+            {
+              sum=rx_buff[count]+sum;
+            }
+            if(sum==rx_buff[LEN-2])//验证校验
+            {
+
+            }
+          }
 
           //指令判断流程
           //验证文件尾
