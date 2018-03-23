@@ -22,17 +22,15 @@ int main(void)
 		/*可在main中进行改动作为测试*/
     sys_init();//初始化
 
-		NVIC_DisableIRQ(EXTI15_10_IRQn);
-		NVIC_DisableIRQ(EXTI9_5_IRQn);
+	NVIC_DisableIRQ(EXTI15_10_IRQn);
+	NVIC_DisableIRQ(EXTI9_5_IRQn);
 		
-		
-		while(1)
-		{
-				delay_s(10);
-				GPIO_SetBits(GPIOF,GPIO_Pin_1);
-				delay_s(10);
-				GPIO_ResetBits(GPIOF,GPIO_Pin_1);
-		}
+	GPIO_SetBits(GPIOD,GPIO_Pin_10);
+	TIM3->CCR1=750;
+	while(1)
+	{	
+		TIM3->CCR1=1200;
+	}
 }
 
 /*********************************************END OF FILE**********************/

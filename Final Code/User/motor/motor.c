@@ -31,7 +31,7 @@ void Motor_Config(void)
     GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
     //  Out_PP类型引脚
     //  磨豆机
-    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_OD;
 		
     GPIO_InitStructure.GPIO_Pin = GPIO_Pin_8;
     GPIO_Init(GPIOD, &GPIO_InitStructure);
@@ -70,7 +70,7 @@ void Motor_Config(void)
     GPIO_InitStructure.GPIO_Pin = GPIO_Pin_15;
     GPIO_Init(GPIOE, &GPIO_InitStructure);
 		
-		GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_OD;
+		GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
     //  搅拌电机
     GPIO_InitStructure.GPIO_Pin = GPIO_Pin_1;
     GPIO_Init(GPIOE, &GPIO_InitStructure);
@@ -152,7 +152,7 @@ void Motor_Config(void)
     GPIO_Init(GPIOA, &GPIO_InitStructure);
 
     //初始化TIM
-    TIM_TimeBaseStructure.TIM_Period = 10000-1;
+    TIM_TimeBaseStructure.TIM_Period = 10000-1;//中位750 低位250 高位1250
     TIM_TimeBaseStructure.TIM_Prescaler = 143;
     TIM_TimeBaseStructure.TIM_ClockDivision = TIM_CKD_DIV1;
     TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
