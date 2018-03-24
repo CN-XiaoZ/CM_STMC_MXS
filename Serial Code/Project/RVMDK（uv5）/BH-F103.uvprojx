@@ -606,11 +606,6 @@
               <FileType>1</FileType>
               <FilePath>..\..\User\scan\GM65.c</FilePath>
             </File>
-            <File>
-              <FileName>sys_config.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\..\User\sys_config.h</FilePath>
-            </File>
           </Files>
         </Group>
         <Group>

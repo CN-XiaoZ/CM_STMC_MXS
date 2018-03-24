@@ -99,5 +99,7 @@
 
 
 void USART_Config(void);
+void USART1_Config(void);
+void UART4_Config(void);
 void output(uint8_t *buff);
 #endif /* __USART_H */
