@@ -10,9 +10,9 @@
 
 void sys_init(void)
 {
-    //SPI_FLASH_Init();
-		Motor_Config();
-    //USART_Config();
+    SPI_FLASH_Init();
+	Motor_Config();
+    USART_Config();
     EXTI_Config();
     NVIC_Config();
 }
@@ -58,15 +58,27 @@ void NVIC_Config(void)
     NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
 
     NVIC_InitStructure.NVIC_IRQChannel = EXTI9_5_IRQn;
-	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
     NVIC_InitStructure.NVIC_IRQChannelSubPriority = 1;
-	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE; 
+	NVIC_InitStructure.NVIC_IRQChannelCmd = DISABLE; 
 	NVIC_Init(&NVIC_InitStructure); 
 
     NVIC_InitStructure.NVIC_IRQChannel = EXTI15_10_IRQn;
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
+    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 2;
+	NVIC_InitStructure.NVIC_IRQChannelCmd = DISABLE; 
+	NVIC_Init(&NVIC_InitStructure);
+
+    NVIC_InitStructure.NVIC_IRQChannel = USART1;
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
+    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 1;
+	NVIC_InitStructure.NVIC_IRQChannelCmd = DISABLE; 
+	NVIC_Init(&NVIC_InitStructure);
+
+    NVIC_InitStructure.NVIC_IRQChannel = UART5;
 	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;
     NVIC_InitStructure.NVIC_IRQChannelSubPriority = 2;
-	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE; 
+	NVIC_InitStructure.NVIC_IRQChannelCmd = DISABLE; 
 	NVIC_Init(&NVIC_InitStructure);
 
     NVIC_InitStructure.NVIC_IRQChannel = TIM6_IRQn;
@@ -74,5 +86,82 @@ void NVIC_Config(void)
     NVIC_InitStructure.NVIC_IRQChannelSubPriority = 3;
 	NVIC_InitStructure.NVIC_IRQChannelCmd = DISABLE; 
 	NVIC_Init(&NVIC_InitStructure);
+
+    NVIC_InitStructure.NVIC_IRQChannel = TIM7_IRQn;
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;
+    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 3;
+	NVIC_InitStructure.NVIC_IRQChannelCmd = DISABLE; 
+	NVIC_Init(&NVIC_InitStructure);
+}
+
+// enum Sys_status
+// {
+//     Sys_WAITING = 0,  //等待
+//     Sys_WASHING,      //清洗
+//     Sys_WAITING_LOAD, //等待装填
+//     Sys_PAYING,       //支付阶段
+//     Sys_WORKING,      //制作阶段
+// };
+
+void SWITCH_TO_WAITING()//打开USART1，UART5 中断
+{
+    NVIC_DisableIRQ(EXTI9_5_IRQn);
+    NVIC_DisableIRQ(EXTI15_10_IRQn);
+    NVIC_DisableIRQ(TIM6_IRQn);
+    NVIC_DisableIRQ(TIM7_IRQn);
+    NVIC_EnableIRQ(USART1_IRQn);
+    NVIC_DisableIRQ(UART4_IRQn);
+    NVIC_EnableIRQ(UART5_IRQn);
     
+}
+
+void SWITCH_TO_WASHING()//关闭所有中断
+{
+    NVIC_DisableIRQ(EXTI9_5_IRQn);
+    NVIC_DisableIRQ(EXTI15_10_IRQn);
+    NVIC_DisableIRQ(TIM6_IRQn);
+    NVIC_DisableIRQ(TIM7_IRQn);
+    NVIC_DisableIRQ(USART1_IRQn);
+    NVIC_DisableIRQ(UART4_IRQn);
+    NVIC_DisableIRQ(UART5_IRQn);
+}
+
+void SWITCH_TO_WAITING_LOAD()//打开USART1，UART5 中断
+{
+    NVIC_DisableIRQ(EXTI9_5_IRQn);
+    NVIC_DisableIRQ(EXTI15_10_IRQn);
+    NVIC_DisableIRQ(TIM6_IRQn);
+    NVIC_DisableIRQ(TIM7_IRQn);
+    NVIC_EnableIRQ(USART1_IRQn);
+    NVIC_DisableIRQ(UART4_IRQn);
+    NVIC_EnableIRQ(UART5_IRQn);
+}
+
+void SWITCH_TO_PAYING()//TIM6，UART4
+{
+    NVIC_DisableIRQ(EXTI9_5_IRQn);
+    NVIC_DisableIRQ(EXTI15_10_IRQn);
+    NVIC_EnableIRQ(TIM6_IRQn);
+    NVIC_DisableIRQ(TIM7_IRQn);
+    NVIC_DisableIRQ(USART1_IRQn);
+    NVIC_EnableIRQ(UART4_IRQn);
+    NVIC_DisableIRQ(UART5_IRQn);
+}
+
+void SWITCH_TO_WORKING()//TIM7
+{
+    NVIC_DisableIRQ(EXTI9_5_IRQn);
+    NVIC_DisableIRQ(EXTI15_10_IRQn);
+    NVIC_DisableIRQ(TIM6_IRQn);
+    NVIC_EnableIRQ(TIM7_IRQn);
+    NVIC_DisableIRQ(USART1_IRQn);
+    NVIC_DisableIRQ(UART4_IRQn);
+    NVIC_DisableIRQ(UART5_IRQn);
+}
+
+
+void System_Reset(void)
+{
+    __set_FAULTMASK(1);
+    NVIC_SystemReset();
 }
