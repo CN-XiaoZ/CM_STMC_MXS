@@ -9,8 +9,8 @@
 #include "./Motor/motor.h"
 #include "./EXTI/EXTI.h"
 
-#define DAC1VOL 2.5
-#define DAC2VOL 2.5
+#define DAC1VOL 1.5
+#define DAC2VOL 1.5
 
 extern int Flow_Index;//流量计序号
 extern int Flow_Count;//流量计达到流量需要值标志

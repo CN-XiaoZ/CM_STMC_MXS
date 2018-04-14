@@ -36,7 +36,7 @@ void Motor_Config(void)
     GPIO_InitTypeDef GPIO_InitStructure;
     DAC_InitTypeDef DAC_InitStructure;
     
-    RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3|RCC_APB1Periph_TIM4|RCC_APB1Periph_TIM5,ENABLE);
+    RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3|RCC_APB1Periph_TIM4|RCC_APB1Periph_TIM5|RCC_APB1Periph_DAC,ENABLE);
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA|\
                             RCC_APB2Periph_GPIOB|\
                             RCC_APB2Periph_GPIOC|\
@@ -48,7 +48,7 @@ void Motor_Config(void)
     GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
     //  Out_PP类型引脚
     //  磨豆机
-    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_OD;
 		
     GPIO_InitStructure.GPIO_Pin = GPIO_Pin_8;
     GPIO_Init(GPIOD, &GPIO_InitStructure);
@@ -69,6 +69,10 @@ void Motor_Config(void)
 		GPIO_InitStructure.GPIO_Pin = GPIO_Pin_7;
     GPIO_Init(GPIOE, &GPIO_InitStructure);
 		
+
+		
+		GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
+		
 		//  电磁阀
     GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0;
     GPIO_Init(GPIOF, &GPIO_InitStructure);
@@ -86,8 +90,6 @@ void Motor_Config(void)
     GPIO_Init(GPIOE, &GPIO_InitStructure);
     GPIO_InitStructure.GPIO_Pin = GPIO_Pin_15;
     GPIO_Init(GPIOE, &GPIO_InitStructure);
-		
-		GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_OD;
     //  搅拌电机
     GPIO_InitStructure.GPIO_Pin = GPIO_Pin_1;
     GPIO_Init(GPIOE, &GPIO_InitStructure);
@@ -136,7 +138,7 @@ void Motor_Config(void)
     //  DAC引脚
     GPIO_InitStructure.GPIO_Pin = GPIO_Pin_4;
     GPIO_Init(GPIOA, &GPIO_InitStructure);
-    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_5;
+		GPIO_InitStructure.GPIO_Pin = GPIO_Pin_5;
     GPIO_Init(GPIOA, &GPIO_InitStructure);
 
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
@@ -222,21 +224,47 @@ void Motor_Config(void)
     DAC_InitStructure.DAC_WaveGeneration=DAC_WaveGeneration_None;
     DAC_InitStructure.DAC_LFSRUnmask_TriangleAmplitude=DAC_LFSRUnmask_Bit0;
     DAC_InitStructure.DAC_OutputBuffer=DAC_OutputBuffer_Disable;
-    DAC_Init(DAC_Channel_1,&DAC_InitStructure);
-    DAC_Cmd(DAC_Channel_1, ENABLE);
-    DAC_Init(DAC_Channel_2,&DAC_InitStructure);
+		DAC_Init(DAC_Channel_2,&DAC_InitStructure);
     DAC_Cmd(DAC_Channel_2, ENABLE);
 
-    DAC1VAL=DAC1VOL*4.096/5.0;
-    DAC2VAL=DAC2VOL*4.096/5.0;
-
-    DAC_SetChannel1Data(DAC_Align_12b_R, DAC1VAL);
-    DAC_SetChannel1Data(DAC_Align_12b_R, DAC2VAL);
-
+    DAC2VAL=0;
+//		
+//    DAC1VAL=1600;
+//    DAC2VAL=1600;//比较好的出蒸汽的量
+//		DAC1VAL=0;
+//		DAC2VAL=0 ;
+    DAC_SetChannel2Data(DAC_Align_12b_R, DAC2VAL);
 }
 
-void FLOW_START(int NumofFlow)
+void Motor_Step1(void)
 {
-    Flow_Count=0;
-    Flow_Index=NumofFlow;//设定流量计号码
+	while(GPIO_ReadInputDataBit(SWITCH1)==1)
+	{
+	TIM4->CCR1=5000;
+	GPIO_ResetBits(MOTOR_CTRL);
+	while(GPIO_ReadInputDataBit(SWITCH1)==1); 
+	TIM4->CCR1=0;
+	GPIO_SetBits(MOTOR_CTRL);
+	delay_ms(200);
+	}
 }
+
+ void Motor_Step2(void)
+{
+	while(GPIO_ReadInputDataBit(SWITCH2)==1)
+	{
+	TIM4->CCR1=5000;
+	GPIO_SetBits(MOTOR_CTRL);
+	while(GPIO_ReadInputDataBit(SWITCH2)==1);
+	TIM4->CCR1=0;
+	GPIO_ResetBits(MOTOR_CTRL);
+	delay_ms(200);
+	}
+}
+
+
+/*-----Demo------
+
+
+
+---------------*/
