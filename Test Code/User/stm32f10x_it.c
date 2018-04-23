@@ -183,30 +183,10 @@ void EXTI9_5_IRQHandler(void)
     if(EXTI_GetITStatus(EXTI_Line9) != RESET)
     {
 			delay_ms(20);
-			if(GPIO_ReadInputDataBit(GPIOE,GPIO_Pin_9) == Bit_SET)
+			if(GPIO_ReadInputDataBit(GPIOE,GPIO_Pin_9) == 1)
 			{
-
-				Motor_Flag++;
-				if(GPIO_ReadOutputDataBit(GPIOE,GPIO_Pin_7) == Bit_SET)
-				{
-					GPIO_ResetBits (GPIOE,GPIO_Pin_7);	
-					TIM4->CCR1=7000;
-					while(GPIO_ReadOutputDataBit(GPIOE,GPIO_Pin_7) == Bit_SET);
-				}
-				else
-				{
-					GPIO_SetBits (GPIOE,GPIO_Pin_7);	
-					TIM4->CCR1=7000;
-					while(GPIO_ReadOutputDataBit(GPIOE,GPIO_Pin_7) != Bit_SET);
-				}
-				if(Motor_Flag==3)
-				{
-					delay_ms(100);
-					Motor_Flag=0;
-					NVIC_DisableIRQ(EXTI15_10_IRQn);
-					NVIC_DisableIRQ(EXTI9_5_IRQn);
-					TIM4->CCR1=0;
-				}
+				TIM4->CCR1=0;
+				NVIC_DisableIRQ(EXTI9_5_IRQn);
 			}
     }
 		EXTI_ClearITPendingBit(EXTI_Line9);
@@ -214,36 +194,15 @@ void EXTI9_5_IRQHandler(void)
 
 void EXTI15_10_IRQHandler(void)
 {
-		if(EXTI_GetITStatus(EXTI_Line10) != RESET)
+	  if(EXTI_GetITStatus(EXTI_Line10) != RESET)
     {
 			delay_ms(20);
-			if(GPIO_ReadInputDataBit(GPIOE,GPIO_Pin_10) == Bit_SET)
+			if(GPIO_ReadInputDataBit(GPIOE,GPIO_Pin_10) == 1)
 			{
-				Motor_Flag++;
-				if(GPIO_ReadOutputDataBit(GPIOE,GPIO_Pin_7) == Bit_SET)
-				{
-					GPIO_ResetBits (GPIOE,GPIO_Pin_7);	
-					TIM4->CCR1=7000;
-					while(GPIO_ReadOutputDataBit(GPIOE,GPIO_Pin_7) == Bit_SET);
-				}
-				else
-				{
-
-					GPIO_SetBits (GPIOE,GPIO_Pin_7);	
-					TIM4->CCR1=7000;
-					while(GPIO_ReadOutputDataBit(GPIOE,GPIO_Pin_7) != Bit_SET);
-				}
-				if(Motor_Flag==3)
-				{
-					delay_ms(100);
-					Motor_Flag=0;
-					NVIC_DisableIRQ(EXTI15_10_IRQn);
-					NVIC_DisableIRQ(EXTI9_5_IRQn);
-					TIM4->CCR1=0;
-				}
+				TIM4->CCR1=0;
+				NVIC_DisableIRQ(EXTI15_10_IRQn);
 			}
     }
-	
 		EXTI_ClearITPendingBit(EXTI_Line10);
 }
 

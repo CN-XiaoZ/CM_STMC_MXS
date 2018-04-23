@@ -31,8 +31,9 @@
 #define MOTOR_CTRL GPIOE, GPIO_Pin_7
 
 #define DAC_PORT GPIOA,GPIO_Pin_4
-
+//TIM4-CH3
 #define RDB1 GPIOB, GPIO_Pin_8
+//TIM4-CH4
 #define RDB2 GPIOB, GPIO_Pin_9
 
 #define FLJ1 GPIOB, GPIO_Pin_8
@@ -40,9 +41,9 @@
 #define FLJ3 GPIOB, GPIO_Pin_8
 #define FLJ4 GPIOB, GPIO_Pin_9
 
-#define JBJ1 GPIOB, GPIO_Pin_8
-#define JBJ2 GPIOB, GPIO_Pin_9
-#define JBJ3 GPIOB, GPIO_Pin_8
+#define JBJ1 GPIOE, GPIO_Pin_1
+#define JBJ2 GPIOE, GPIO_Pin_2
+#define JBJ3 GPIOE, GPIO_Pin_3
 #define JBJ4 GPIOE, GPIO_Pin_4
 
 

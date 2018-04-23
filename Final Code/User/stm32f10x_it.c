@@ -27,7 +27,7 @@
 #include "stm32f10x_it.h"
 #include "sys_config.h"
 
-uint8_t PAY_Finish=0;
+static int Motor_Flag=0;
 /** @addtogroup STM32F10x_StdPeriph_Template
   * @{
   */
@@ -160,7 +160,6 @@ void SysTick_Handler(void)
   * @}
   */ 
 
-//用于安卓和单片机通信
 void USART1_IRQHandler(void)
 {	
 	uint8_t temp;
@@ -170,128 +169,21 @@ void USART1_IRQHandler(void)
 		USART_SendData(USART1,temp);  
 	}	 
 }
+//uint16_t Pos;
+//uint16_t Time_Count;
+//void TIM6_IRQHandler(void)
+//{
+//    
+//    if(TIM_GetITStatus( TIM6, TIM_IT_Update) != RESET) 
+//    { 
+//        if(Time_Count==Order[Pos][2])//当时间计数值等于当前位置的指令的第三位时间值
+//        {
+//            Action(Order[Pos][0],Order[Pos][1]);
+//        }
+//        TIM_ClearITPendingBit(TIM6 , TIM_FLAG_Update);
+//    }
+//}
 
-//用于读取二维码
-void UART4_IRQHandler(void)
-{	
-	uint8_t temp;
-	if(USART_GetITStatus(UART4,USART_IT_RXNE)!=RESET)
-	{	
-		temp = USART_ReceiveData(UART4);
-		USART_SendData(UART4,temp);  
-	}	 
-}
-
-//用于监测监控系统的状态
-void UART5_IRQHandler(void)
-{	
-	uint8_t temp;
-	if(USART_GetITStatus(UART5,USART_IT_RXNE)!=RESET)
-	{	
-		temp = USART_ReceiveData(UART5);
-		USART_SendData(UART5,temp);  
-	}	 
-}
-
-
-
-void EXTI9_5_IRQHandler(void)
-{
-    if(EXTI_GetITStatus(EXTI_Line9) != RESET)
-    {
-			delay_ms(20);
-			if(GPIO_ReadInputDataBit(GPIOE,GPIO_Pin_9) == Bit_SET)
-			{
-
-				Motor_Flag++;
-				if(GPIO_ReadOutputDataBit(GPIOE,GPIO_Pin_7) == Bit_SET)
-				{
-					GPIO_ResetBits (GPIOE,GPIO_Pin_7);	
-					TIM4->CCR1=7000;
-					while(GPIO_ReadOutputDataBit(GPIOE,GPIO_Pin_7) == Bit_SET);
-				}
-				else
-				{
-					GPIO_SetBits (GPIOE,GPIO_Pin_7);	
-					TIM4->CCR1=7000;
-					while(GPIO_ReadOutputDataBit(GPIOE,GPIO_Pin_7) != Bit_SET);
-				}
-				if(Motor_Flag==3)
-				{
-					delay_ms(100);
-					Motor_Flag=0;
-					NVIC_DisableIRQ(EXTI15_10_IRQn);
-					NVIC_DisableIRQ(EXTI9_5_IRQn);
-					TIM4->CCR1=0;
-				}
-			}
-    }
-		EXTI_ClearITPendingBit(EXTI_Line9);
-}
-
-void EXTI15_10_IRQHandler(void)
-{
-		if(EXTI_GetITStatus(EXTI_Line10) != RESET)
-    {
-			delay_ms(20);
-			if(GPIO_ReadInputDataBit(GPIOE,GPIO_Pin_10) == Bit_SET)
-			{
-				Motor_Flag++;
-				if(GPIO_ReadOutputDataBit(GPIOE,GPIO_Pin_7) == Bit_SET)
-				{
-					GPIO_ResetBits (GPIOE,GPIO_Pin_7);	
-					TIM4->CCR1=7000;
-					while(GPIO_ReadOutputDataBit(GPIOE,GPIO_Pin_7) == Bit_SET);
-				}
-				else
-				{
-
-					GPIO_SetBits (GPIOE,GPIO_Pin_7);	
-					TIM4->CCR1=7000;
-					while(GPIO_ReadOutputDataBit(GPIOE,GPIO_Pin_7) != Bit_SET);
-				}
-				if(Motor_Flag==3)
-				{
-					delay_ms(100);
-					Motor_Flag=0;
-					NVIC_DisableIRQ(EXTI15_10_IRQn);
-					NVIC_DisableIRQ(EXTI9_5_IRQn);
-					TIM4->CCR1=0;
-				}
-			}
-    }
-	
-		EXTI_ClearITPendingBit(EXTI_Line10);
-}
-
-
-void TIM6_IRQHandler(void)
-{
-    //定时1S 到达60后返回超时指令 并返回等待状态
-    static int Time_count=0;
-    if(TIM_GetITStatus( TIM6, TIM_IT_Update) != RESET) 
-    { 
-        Time_count++;
-        if(Time_count>=60)
-        {
-            Time_Count=0;
-            PAY_Finish=0;
-            SWITCH_TO_WAITING();
-        }
-        //两种情况 1. 超时 判断条件是计数大于60，清空所有有关标志位，进入SWITCH_TO_WAITING
-        //2. 接收到，转换后发送到上位机，清空所有标志位 ，进入SWITCH_TO_WORK,在WORK阶段判断。
-        TIM_ClearITPendingBit(TIM6 , TIM_FLAG_Update);
-    }
-}
-
-void TIM7_IRQHandler(void)
-{
-    if(TIM_GetITStatus( TIM7, TIM_IT_Update) != RESET) 
-    { 
-         
-        TIM_ClearITPendingBit(TIM7 , TIM_FLAG_Update);
-    }
-}
 
 
 /******************* (C) COPYRIGHT 2011 STMicroelectronics *****END OF FILE****/

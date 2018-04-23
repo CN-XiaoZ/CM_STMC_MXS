@@ -11,18 +11,22 @@
 void sys_init(void)
 {
     SPI_FLASH_Init();
-	Motor_Config();
+    Motor_Config();
     USART_Config();
-    EXTI_Config();
-    NVIC_Config();
+    //EXTI_Config();
+    //NVIC_Config();
+		GPIO_SetBits(GPIOD,GPIO_Pin_8);
+		GPIO_SetBits(GPIOD,GPIO_Pin_9);
+		GPIO_SetBits(GPIOD,GPIO_Pin_10);
+		GPIO_SetBits(GPIOD,GPIO_Pin_11);
+		GPIO_SetBits(GPIOA,GPIO_Pin_11);
 }
 
 void delay_ms(int nms)
 {
     uint32_t i;
     SysTick_Config(SystemCoreClock / 1000);
-    for (i = 0; i < nms; i++)
-    {
+    for (i = 0; i < nms; i++) {
         while (!((SysTick->CTRL) & (1 << 16)))
             ;
     }
@@ -33,8 +37,7 @@ void delay_us(int nus)
 {
     uint32_t i;
     SysTick_Config(SystemCoreClock / 1000000);
-    for (i = 0; i < nus; i++)
-    {
+    for (i = 0; i < nus; i++) {
         while (!((SysTick->CTRL) & (1 << 16)))
             ;
     }
@@ -57,111 +60,29 @@ void NVIC_Config(void)
     NVIC_InitTypeDef NVIC_InitStructure;
     NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
 
-    NVIC_InitStructure.NVIC_IRQChannel = EXTI9_5_IRQn;
-	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
-    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 1;
-	NVIC_InitStructure.NVIC_IRQChannelCmd = DISABLE; 
-	NVIC_Init(&NVIC_InitStructure); 
-
-    NVIC_InitStructure.NVIC_IRQChannel = EXTI15_10_IRQn;
-	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
-    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 2;
-	NVIC_InitStructure.NVIC_IRQChannelCmd = DISABLE; 
-	NVIC_Init(&NVIC_InitStructure);
-
-    NVIC_InitStructure.NVIC_IRQChannel = USART1;
-	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
-    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 1;
-	NVIC_InitStructure.NVIC_IRQChannelCmd = DISABLE; 
-	NVIC_Init(&NVIC_InitStructure);
-
-    NVIC_InitStructure.NVIC_IRQChannel = UART5;
-	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;
-    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 2;
-	NVIC_InitStructure.NVIC_IRQChannelCmd = DISABLE; 
-	NVIC_Init(&NVIC_InitStructure);
-
     NVIC_InitStructure.NVIC_IRQChannel = TIM6_IRQn;
-	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;
+    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;
     NVIC_InitStructure.NVIC_IRQChannelSubPriority = 3;
-	NVIC_InitStructure.NVIC_IRQChannelCmd = DISABLE; 
-	NVIC_Init(&NVIC_InitStructure);
-
-    NVIC_InitStructure.NVIC_IRQChannel = TIM7_IRQn;
-	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;
-    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 3;
-	NVIC_InitStructure.NVIC_IRQChannelCmd = DISABLE; 
-	NVIC_Init(&NVIC_InitStructure);
+    NVIC_InitStructure.NVIC_IRQChannelCmd = DISABLE;
+    NVIC_Init(&NVIC_InitStructure);
 }
 
-// enum Sys_status
-// {
-//     Sys_WAITING = 0,  //等待
-//     Sys_WASHING,      //清洗
-//     Sys_WAITING_LOAD, //等待装填
-//     Sys_PAYING,       //支付阶段
-//     Sys_WORKING,      //制作阶段
-// };
-
-void SWITCH_TO_WAITING()//打开USART1，UART5 中断
+void Work_Demo(void)
 {
-    NVIC_DisableIRQ(EXTI9_5_IRQn);
-    NVIC_DisableIRQ(EXTI15_10_IRQn);
-    NVIC_DisableIRQ(TIM6_IRQn);
-    NVIC_DisableIRQ(TIM7_IRQn);
-    NVIC_EnableIRQ(USART1_IRQn);
-    NVIC_DisableIRQ(UART4_IRQn);
-    NVIC_EnableIRQ(UART5_IRQn);
-    
-}
+    //磨豆机运行 x秒
+    delay_ms(1000);
 
-void SWITCH_TO_WASHING()//关闭所有中断
-{
-    NVIC_DisableIRQ(EXTI9_5_IRQn);
-    NVIC_DisableIRQ(EXTI15_10_IRQn);
-    NVIC_DisableIRQ(TIM6_IRQn);
-    NVIC_DisableIRQ(TIM7_IRQn);
-    NVIC_DisableIRQ(USART1_IRQn);
-    NVIC_DisableIRQ(UART4_IRQn);
-    NVIC_DisableIRQ(UART5_IRQn);
-}
+    NVIC_EnableIRQ(EXTI9_5_IRQn);
+    //中断触发后自动停止电机 关闭中断
 
-void SWITCH_TO_WAITING_LOAD()//打开USART1，UART5 中断
-{
-    NVIC_DisableIRQ(EXTI9_5_IRQn);
-    NVIC_DisableIRQ(EXTI15_10_IRQn);
-    NVIC_DisableIRQ(TIM6_IRQn);
-    NVIC_DisableIRQ(TIM7_IRQn);
-    NVIC_EnableIRQ(USART1_IRQn);
-    NVIC_DisableIRQ(UART4_IRQn);
-    NVIC_EnableIRQ(UART5_IRQn);
-}
-
-void SWITCH_TO_PAYING()//TIM6，UART4
-{
-    NVIC_DisableIRQ(EXTI9_5_IRQn);
-    NVIC_DisableIRQ(EXTI15_10_IRQn);
-    NVIC_EnableIRQ(TIM6_IRQn);
-    NVIC_DisableIRQ(TIM7_IRQn);
-    NVIC_DisableIRQ(USART1_IRQn);
-    NVIC_EnableIRQ(UART4_IRQn);
-    NVIC_DisableIRQ(UART5_IRQn);
-}
-
-void SWITCH_TO_WORKING()//TIM7
-{
-    NVIC_DisableIRQ(EXTI9_5_IRQn);
-    NVIC_DisableIRQ(EXTI15_10_IRQn);
-    NVIC_DisableIRQ(TIM6_IRQn);
-    NVIC_EnableIRQ(TIM7_IRQn);
-    NVIC_DisableIRQ(USART1_IRQn);
-    NVIC_DisableIRQ(UART4_IRQn);
-    NVIC_DisableIRQ(UART5_IRQn);
-}
-
-
-void System_Reset(void)
-{
-    __set_FAULTMASK(1);
-    NVIC_SystemReset();
+    //开启锅炉的一档
+    //打开废水阀
+    //打开增压泵
+    //等待5秒 等待出热水
+    //关闭废水阀 打开前往冲泡器的阀
+    //等待出水 等待几秒
+    NVIC_EnableIRQ(EXTI15_10_IRQn);
+    //到位之后关闭中断
+    //此时已得到咖啡液
+    //蠕动泵启动 加入牛奶若干
 }

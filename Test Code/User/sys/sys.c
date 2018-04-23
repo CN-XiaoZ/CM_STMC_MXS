@@ -10,7 +10,7 @@
 
 void sys_init(void)
 {
-    //SPI_FLASH_Init();
+    SPI_FLASH_Init();
     Motor_Config();
     USART_Config();
     //EXTI_Config();
