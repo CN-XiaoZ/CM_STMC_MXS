@@ -22,7 +22,7 @@ void SPI_FLASH_Init(void)
 
     GPIO_InitStructure.GPIO_Pin   = SPI_FLASH_CS_PIN;
     GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-    GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_Out_PP;
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
     GPIO_Init(SPI_FLASH_CS_PORT, &GPIO_InitStructure);
 
     GPIO_InitStructure.GPIO_Pin  = SPI_FLASH_CLK_PIN;
@@ -44,7 +44,7 @@ void SPI_FLASH_Init(void)
     SPI_InitStructure.SPI_NSS               = SPI_NSS_Soft;
     SPI_InitStructure.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_4;
     SPI_InitStructure.SPI_FirstBit          = SPI_FirstBit_MSB;
-    SPI_InitStructure.SPI_CRCPolynomial     = 7;
+    SPI_InitStructure.SPI_CRCPolynomial = 7;
     SPI_Init(SPI2, &SPI_InitStructure);
     SPI_Cmd(SPI2, ENABLE);
 }
@@ -318,4 +318,3 @@ static uint16_t SPI_TIMEOUT_UserCallback(uint8_t errorCode)
     FLASH_ERROR("SPI TimeOut! errorCode = %d", errorCode);
     return 0;
 }
-

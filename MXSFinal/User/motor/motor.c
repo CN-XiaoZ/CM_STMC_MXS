@@ -584,17 +584,7 @@ void Action(uint16_t Number, uint16_t action)
             TIM4->CCR4 = DJ_POS2;
         }
         break;
-    case 31: // CPQ
-        if (action == 0)
-        {
-            TIM2->CCR2 = 5000;
-        }
-        else
-        {
-            TIM2->CCR2 = 0;
-        }
-        break;
-    case 32: // ZYB
+    case 31: // ZYB
         if (action == 0)
         {
             DAC_SetChannel2Data(DAC_Align_12b_R,3000);
