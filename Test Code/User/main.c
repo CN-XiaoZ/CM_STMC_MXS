@@ -19,24 +19,72 @@ uint8_t Sys_status;
  * @Date: 2018-02-27 14:07:26 
  * @Desc: Main Func  
  */
+int i=0;
+uint8_t DataReadIN[256];
+uint8_t Data_test[256]={0};
 int main(void)
 {
-	int i=0;
-	float time=3.15;
-    sys_init();
-
-		NVIC_DisableIRQ(EXTI15_10_IRQn);
-		NVIC_DisableIRQ(EXTI9_5_IRQn);
+	
+	float time=2.78;
+  sys_init();
 //		delay_s(5);
 //		GPIO_ResetBits(GPIOD,GPIO_Pin_9);
 //		delay_s(5);
 //		GPIO_SetBits(GPIOD,GPIO_Pin_9);
 //		//DAC_SetChannel2Data(DAC_Align_12b_R,3000);
+/*----------冷水--------------*/
+	//Motor_Step1();
+	for(i=0;i<256;i++)
+	{
+		DataReadIN[i]=i;
+	}
+	SPI_FLASH_PageWrite(DataReadIN,0x00000000,256);
+	delay_s(1); 
+	SPI_FLASH_BufferRead(Data_test,0x00000000,256);
+	while(1)
+	{}
 	
-		Motor_Step1();
-		Motor_Step2();
+//	DAC_SetChannel2Data(DAC_Align_12b_R,3000);
+//	delay_s(40);
+//	DAC_SetChannel2Data(DAC_Align_12b_R,0);
+//	GPIO_SetBits(DCF2);
+//	GPIO_SetBits(DCF1);
+//	delay_s(3);
+//	GPIO_ResetBits(DCF2);
+//	GPIO_ResetBits(DCF1);
+//	Motor_Step2(); 
+	
+
+	while(1)
+	{}
+//	GPIO_ResetBits(MDJ1);
+//	delay_s(time);
+//	GPIO_SetBits(MDJ1);
+//	Motor_Step1();
+//	DAC_SetChannel2Data(DAC_Align_12b_R,3000);
+//	GPIO_SetBits(DCF2);
+//	delay_s(10);
+//	DAC_SetChannel2Data(DAC_Align_12b_R,0);
+//	GPIO_SetBits(DCF1);
+//	delay_s(2);
+//	GPIO_ResetBits(DCF2);
+	
+/*------------------------------*/
 	 
     //蓝线接M2 红线接M1    
+//		GPIO_ResetBits(JRS1);
+//	GPIO_ResetBits(JRS2);
+//	delay_s(1);
+//	DAC_SetChannel2Data(DAC_Align_12b_R,1600);
+//	GPIO_SetBits(DCF1);
+//	delay_s(70);
+//	GPIO_ResetBits(DCF1);
+//	DAC_SetChannel2Data(DAC_Align_12b_R,0);
+//	GPIO_SetBits(JRS1);
+//	GPIO_SetBits(JRS2);
+//	TIM4->CCR3=9000;
+//	delay_s(40);
+	
 }
 
 

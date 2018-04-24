@@ -119,8 +119,7 @@ void Motor_Config(void)
 
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
     //  冲泡器
-
-    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPD;
     //  限位开关
     GPIO_InitStructure.GPIO_Pin = GPIO_Pin_9;
     GPIO_Init(GPIOE, &GPIO_InitStructure);
@@ -238,29 +237,42 @@ void Motor_Config(void)
 
 void Motor_Step1(void)
 {
-	while(GPIO_ReadInputDataBit(SWITCH1)==1)
-	{
-	TIM4->CCR1=5000;
-	GPIO_ResetBits(MOTOR_CTRL);
-	while(GPIO_ReadInputDataBit(SWITCH1)==1); 
-	TIM4->CCR1=0;
-	GPIO_SetBits(MOTOR_CTRL);
-	delay_ms(200);
-	}
+		while(GPIO_ReadInputDataBit(SWITCH2)==0)  
+		{
+			TIM4->CCR1=5000; 
+			GPIO_ResetBits(MOTOR_CTRL);
+			while(GPIO_ReadInputDataBit(SWITCH2)==0);
+			delay_ms(20);
+		}
+		TIM4->CCR1=0;
 }
 
- void Motor_Step2(void)
+void Motor_Step2(void)
 {
-	while(GPIO_ReadInputDataBit(SWITCH2)==1)
-	{
-	TIM4->CCR1=5000;
-	GPIO_SetBits(MOTOR_CTRL);
-	while(GPIO_ReadInputDataBit(SWITCH2)==1);
-	TIM4->CCR1=0;
-	GPIO_ResetBits(MOTOR_CTRL);
-	delay_ms(200);
-	}
+		while(GPIO_ReadInputDataBit(SWITCH1)==0)  
+		{
+			TIM4->CCR1=5000; 
+			GPIO_SetBits(MOTOR_CTRL);
+			while(GPIO_ReadInputDataBit(SWITCH1)==0);
+			delay_ms(20);
+		}
+		TIM4->CCR1=0;
 }
+
+
+//void Motor_Step1(void)
+//{
+//	TIM4->CCR1=5000;
+//	GPIO_SetBits(MOTOR_CTRL);
+//	NVIC_EnableIRQ(EXTI15_10_IRQn);
+//}
+//void Motor_Step2(void)
+//{
+//	TIM4->CCR1=5000;
+//	GPIO_ResetBits(MOTOR_CTRL);
+//	NVIC_EnableIRQ(EXTI9_5_IRQn);
+//}
+
 
 
 /*-----Demo------

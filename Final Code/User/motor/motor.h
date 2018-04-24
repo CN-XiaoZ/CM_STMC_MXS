@@ -17,4 +17,6 @@ void Motor_Start(void);
 void Motor_Back(void);
 void Motor_Config(void);
 void Motor_Config2(void);
+void Motor_Step1(void);
+void Motor_Step2(void);
 #endif

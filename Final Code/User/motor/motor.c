@@ -1,25 +1,20 @@
-/**
-  ******************************************************************************
-  * @file    motor.c
-  * @version V1.0
-  * @date    2018-1-4
-  * @brief   电机以及外设的初始化
-  ******************************************************************************
-  */
+//要开一个PWM(TIM4_CH1),一个普通引脚
+
 #include "sys_config.h"
 
-int Flow_Index;//流量计序号
-int Flow_Count;//流量计达到流量需要值标志
+
+//流量计程序设计要点
+//1. 为了有个固定的时间作为时间差 所以需要一个定时中断做时间差积分
 
 void Motor_Config(void)
 {
-    float DAC1VAL,DAC2VAL;
+    float DAC2VAL;
     TIM_TimeBaseInitTypeDef TIM_TimeBaseStructure;
     TIM_OCInitTypeDef TIM_OCInitStructure;
     GPIO_InitTypeDef GPIO_InitStructure;
     DAC_InitTypeDef DAC_InitStructure;
     
-    RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3|RCC_APB1Periph_TIM4|RCC_APB1Periph_TIM5,ENABLE);
+    RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3|RCC_APB1Periph_TIM4|RCC_APB1Periph_TIM5|RCC_APB1Periph_DAC,ENABLE);
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA|\
                             RCC_APB2Periph_GPIOB|\
                             RCC_APB2Periph_GPIOC|\
@@ -29,7 +24,6 @@ void Motor_Config(void)
                             RCC_APB2Periph_GPIOG,ENABLE);
     //  GPIO部分
     GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-    //  Out_PP类型引脚
     //  磨豆机
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_OD;
 		
@@ -52,6 +46,10 @@ void Motor_Config(void)
 		GPIO_InitStructure.GPIO_Pin = GPIO_Pin_7;
     GPIO_Init(GPIOE, &GPIO_InitStructure);
 		
+
+		
+		GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
+		
 		//  电磁阀
     GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0;
     GPIO_Init(GPIOF, &GPIO_InitStructure);
@@ -69,8 +67,6 @@ void Motor_Config(void)
     GPIO_Init(GPIOE, &GPIO_InitStructure);
     GPIO_InitStructure.GPIO_Pin = GPIO_Pin_15;
     GPIO_Init(GPIOE, &GPIO_InitStructure);
-		
-		GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
     //  搅拌电机
     GPIO_InitStructure.GPIO_Pin = GPIO_Pin_1;
     GPIO_Init(GPIOE, &GPIO_InitStructure);
@@ -100,8 +96,7 @@ void Motor_Config(void)
 
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
     //  冲泡器
-
-    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPD;
     //  限位开关
     GPIO_InitStructure.GPIO_Pin = GPIO_Pin_9;
     GPIO_Init(GPIOE, &GPIO_InitStructure);
@@ -119,7 +114,7 @@ void Motor_Config(void)
     //  DAC引脚
     GPIO_InitStructure.GPIO_Pin = GPIO_Pin_4;
     GPIO_Init(GPIOA, &GPIO_InitStructure);
-    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_5;
+		GPIO_InitStructure.GPIO_Pin = GPIO_Pin_5;
     GPIO_Init(GPIOA, &GPIO_InitStructure);
 
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
@@ -152,15 +147,13 @@ void Motor_Config(void)
     GPIO_Init(GPIOA, &GPIO_InitStructure);
 
     //初始化TIM
-    TIM_TimeBaseStructure.TIM_Period = 10000-1;//中位750 低位250 高位1250
+    TIM_TimeBaseStructure.TIM_Period = 10000-1;
     TIM_TimeBaseStructure.TIM_Prescaler = 143;
     TIM_TimeBaseStructure.TIM_ClockDivision = TIM_CKD_DIV1;
     TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
     TIM_TimeBaseInit(TIM3, &TIM_TimeBaseStructure);
     TIM_TimeBaseInit(TIM4, &TIM_TimeBaseStructure);
     TIM_TimeBaseInit(TIM5, &TIM_TimeBaseStructure);
-    TIM_TimeBaseInit(TIM6, &TIM_TimeBaseStructure);
-    //设定TIM6中断
     
     TIM_OCInitStructure.TIM_OCMode = TIM_OCMode_PWM2;
     TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable;
@@ -205,21 +198,40 @@ void Motor_Config(void)
     DAC_InitStructure.DAC_WaveGeneration=DAC_WaveGeneration_None;
     DAC_InitStructure.DAC_LFSRUnmask_TriangleAmplitude=DAC_LFSRUnmask_Bit0;
     DAC_InitStructure.DAC_OutputBuffer=DAC_OutputBuffer_Disable;
-    DAC_Init(DAC_Channel_1,&DAC_InitStructure);
-    DAC_Cmd(DAC_Channel_1, ENABLE);
-    DAC_Init(DAC_Channel_2,&DAC_InitStructure);
+	DAC_Init(DAC_Channel_2,&DAC_InitStructure);
     DAC_Cmd(DAC_Channel_2, ENABLE);
 
-    DAC1VAL=DAC1VOL*4.096/5.0;
-    DAC2VAL=DAC2VOL*4.096/5.0;
-
-    DAC_SetChannel1Data(DAC_Align_12b_R, DAC1VAL);
-    DAC_SetChannel1Data(DAC_Align_12b_R, DAC2VAL);
-
+    DAC2VAL=0;
+    DAC_SetChannel2Data(DAC_Align_12b_R, DAC2VAL);
 }
 
-void FLOW_START(int NumofFlow)
+void Motor_Step1(void)
 {
-    Flow_Count=0;
-    Flow_Index=NumofFlow;//设定流量计号码
+		while(GPIO_ReadInputDataBit(SWITCH2)==0)  
+		{
+			TIM4->CCR1=5000; 
+			GPIO_ResetBits(MOTOR_CTRL);
+			while(GPIO_ReadInputDataBit(SWITCH2)==0);
+			delay_ms(20);
+		}
+		TIM4->CCR1=0;
 }
+
+void Motor_Step2(void)
+{
+		while(GPIO_ReadInputDataBit(SWITCH1)==0)  
+		{
+			TIM4->CCR1=5000; 
+			GPIO_SetBits(MOTOR_CTRL);
+			while(GPIO_ReadInputDataBit(SWITCH1)==0);
+			delay_ms(20);
+		}
+		TIM4->CCR1=0;
+}
+
+
+/*-----Demo------
+
+
+
+---------------*/
