@@ -3,8 +3,17 @@
 /** 
  * 二进制码表
  * 1
+ * 地址:0x0000 标志:01111101 0x7D
+ * 关闭LED 开启声音 开启照明 开启瞄准 命令触发模式
+ * 命令触发模式下，识读模块接受到主机发送的扫描指令后开始读码
+ * 扫描指令：在0x0002的bit0写入1
+ * GM65_WriteCommand(0x0002,0x41);
+ * 或者串口发送：7E 00 08 01 00 02 01 AB CD
+ * 模块输出七字节回应信息：02 00 00 01 00 33 31
+ * 然后开始扫描
+ * 
  * 地址:0x0000 标志:01111111 0x7F
- * 关闭LED 开启声音 开启照明 开启瞄准 连续模式
+ * 关闭LED 开启声音 开启照明 开启瞄准 感应模式
  * 
  * 2
  * 地址:0x0002 标志:01000000 0x40
@@ -62,8 +71,8 @@
  */
 void GM65_Init(void)
 {
-    GM65_WriteCommand(0x0000,0x7E);//1
-		delay_ms(100);
+    GM65_WriteCommand(0x0000,0x7D);//1
+	delay_ms(100);
     GM65_WriteCommand(0x0002,0x40);//2
 	delay_ms(100);
     GM65_WriteCommand(0x0003,0x02);//3
@@ -85,11 +94,11 @@ void GM65_Init(void)
     GM65_WriteCommand(0x0064,0xFF);//11
 	delay_ms(100);
     GM65_WriteCommand(0x0081,0x02);//12
-		delay_ms(100);
+	delay_ms(100);
     GM65_WriteCommand(0x0082,0xDC);//13
-		delay_ms(100);
+	delay_ms(100);
     GM65_WriteCommand(0x0083,0xBA);//13
-		delay_ms(100);
+	delay_ms(100);
     GM65_SaveCommand();
 }
 
