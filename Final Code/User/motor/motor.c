@@ -9,25 +9,6 @@
 void Motor_Config(void)
 {
     float DAC2VAL;
-    /** 
-     * 需要初始化的东西:TIM4 TIM5 TIM3 DAC 
-     * 磨豆机两个接口 OUT_OD D8 D9
-     * 抽水泵一个接口 OUT_OD D10
-     * 加热丝两个接口 OUT_OD D11 A11
-     * 增压泵接口 OUT_OD A12
-     * 冲泡器电机初始化TIM4_CH1 和 E7 Out_pp
-     * 冲泡器限位开关 E9 E10 INFLAOTING
-     * 搅拌电机四个接口 OUT_OD E1 E2 E3 E4
-     * 粉料电机四个接口 OUT_OD D12 D13 D14 D15
-     * 搅拌器 初始化TIM4_CH2
-     * 蠕动泵两个 初始化TIM4_CH3 TIM4_CH4
-     * 电磁阀八个 OUT_OD F0 F1 F2 F3 F4 F5 E14 E15
-     * DAC两个 AIN A4 A5
-     * 
-     * 舵机连接 A6 PWM
-     * 流量计 E0 B5 G15 INFLIOATING
-     * 步进PA7 E5 E6 E8
-     */
     TIM_TimeBaseInitTypeDef TIM_TimeBaseStructure;
     TIM_OCInitTypeDef TIM_OCInitStructure;
     GPIO_InitTypeDef GPIO_InitStructure;
@@ -43,7 +24,6 @@ void Motor_Config(void)
                             RCC_APB2Periph_GPIOG,ENABLE);
     //  GPIO部分
     GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-    //  Out_PP类型引脚
     //  磨豆机
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_OD;
 		

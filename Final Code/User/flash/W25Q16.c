@@ -482,14 +482,4 @@ static uint16_t SPI_TIMEOUT_UserCallback(uint8_t errorCode) {
   return 0;
 }
 
-void FLASH_READALL(void) {}
-
-void FLASH_SETDEFALUT(void) {}
-
-void FLASH_WRITE(uint8_t *data) {}
-
-void FLASH_GETFORMULA(int NumofFormula) {}
-
-void FLASH_SETFORMULA(uint8_t *data) {}
-
 /*********************************************END OF FILE**********************/
