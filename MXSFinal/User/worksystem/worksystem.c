@@ -1,6 +1,7 @@
 #include "./worksystem/worksystem.h"
 
 uint16_t Order[60][3];//数据保存
+uint8_t Config[16];
 
 
 
@@ -78,8 +79,25 @@ void WorkSystem_Start(void)//输入配方的号码
 
 void GetOrder(uint8_t Number)//在WorkSystem_Start函数前进行
 {
-    //从Flash读取一次配方数据
+    uint16_t i;
+    uint8_t temp[256];
+    SPI_FLASH_BufferRead(temp,FORMULA_ADDR(Number),256);
+    for(i=0;i<16;i++)
+    {
+        Config[i]=temp[i];
+    }
+    for(i=0;i<60;i++)
+    {
+        Order[i][0]=temp[4*i+16];
+        Order[i][1]=Change8to16(temp[4*i+17],temp[4*i+18]);
+        Order[i][2]=temp[4*i+19];
+    }
+    
+
+
 }
+
+
 
 uint16_t Change8to16(uint8_t HighPart,uint8_t LowPart)
 {

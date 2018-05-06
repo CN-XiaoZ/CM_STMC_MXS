@@ -1,11 +1,11 @@
 /**
   ******************************************************************************
-  * @file    Project/STM32F10x_StdPeriph_Template/stm32f10x_it.c 
+  * @file    Project/STM32F10x_StdPeriph_Template/stm32f10x_it.c
   * @author  MCD Application Team
   * @version V3.5.0
   * @date    08-April-2011
   * @brief   Main Interrupt Service Routines.
-  *          This file provides template for all exceptions handler and 
+  *          This file provides template for all exceptions handler and
   *          peripherals interrupt service routine.
   ******************************************************************************
   * @attention
@@ -14,7 +14,7 @@
   * WITH CODING INFORMATION REGARDING THEIR PRODUCTS IN ORDER FOR THEM TO SAVE
   * TIME. AS A RESULT, STMICROELECTRONICS SHALL NOT BE HELD LIABLE FOR ANY
   * DIRECT, INDIRECT OR CONSEQUENTI
-  
+
   AL DAMAGES WITH RESPECT TO ANY CLAIMS ARISING
   * FROM THE CONTENT OF SUCH FIRMWARE AND/OR THE USE MADE BY CUSTOMERS OF THE
   * CODING INFORMATION CONTAINED HEREIN IN CONNECTION WITH THEIR PRODUCTS.
@@ -47,9 +47,7 @@
   * @param  None
   * @retval None
   */
-void NMI_Handler(void)
-{
-}
+void NMI_Handler(void) {}
 
 /**
   * @brief  This function handles Hard Fault exception.
@@ -108,36 +106,28 @@ void UsageFault_Handler(void)
   * @param  None
   * @retval None
   */
-void SVC_Handler(void)
-{
-}
+void SVC_Handler(void) {}
 
 /**
   * @brief  This function handles Debug Monitor exception.
   * @param  None
   * @retval None
   */
-void DebugMon_Handler(void)
-{
-}
+void DebugMon_Handler(void) {}
 
 /**
   * @brief  This function handles PendSVC exception.
   * @param  None
   * @retval None
   */
-void PendSV_Handler(void)
-{
-}
+void PendSV_Handler(void) {}
 
 /**
   * @brief  This function handles SysTick Handler.
   * @param  None
   * @retval None
   */
-void SysTick_Handler(void)
-{
-}
+void SysTick_Handler(void) {}
 
 /******************************************************************************/
 /*                 STM32F10x Peripherals Interrupt Handlers                   */
@@ -158,8 +148,8 @@ void SysTick_Handler(void)
 /**
   * @}
   */
-uint8_t rx_buff[100] = {0};
-uint8_t ERROR_FLAG = 0;
+uint8_t rx_buff[100]  = {0};
+uint8_t ERROR_FLAG    = 0;
 long int SUCCESS_FLAG = 0;
 
 void USART1_IRQHandler(void)
@@ -185,9 +175,19 @@ void USART1_IRQHandler(void)
             {
                 rx_buff[pointer++] = temp;
                 LEN = temp;
+                if (LEN > 0x64)
+                {
+                    printf("Len Error! More Than 100! System Reboot\r\n");
+                    __set_FAULTMASK(1);
+                    NVIC_SystemReset();
+                }
             }
             else
             {
+                printf("Header Error %x %x,System Reboot\r\n", rx_buff[0],
+                       rx_buff[1]);
+                __set_FAULTMASK(1);
+                NVIC_SystemReset();
                 rx_buff[0] = rx_buff[1];
                 rx_buff[1] = temp;
             }
@@ -200,38 +200,37 @@ void USART1_IRQHandler(void)
                 rx_buff[pointer++] = temp;
                 if (pointer == LEN)
                 {
-//                    printf("pointer = len!\r\n");
-                    //指令接收结束
-                    if (rx_buff[LEN-1] == 0x2F && rx_buff[LEN - 2] == 0x1F)
+
+                    if (rx_buff[LEN - 1] == 0x2F && rx_buff[LEN - 2] == 0x1F)
                     {
-                        for (count = 2; count < LEN - 4; count++)
+                        for (count = 2; count < LEN - 3; count++)
                         {
-                            sum = rx_buff[count] + sum;						
+                            sum = rx_buff[count] + sum;
                         }
                         if (sum == rx_buff[LEN - 3]) //验证校验
                         {
-							SUCCESS_FLAG++;
+                            SUCCESS_FLAG++;
+                            //做数据处理
+                            printf("Success! Content:");
+                            for (i = 0; i < LEN - 6; i++)
+                            {
+                                printf("%x ", rx_buff[3 + i]);
+                            }
+                            printf("\r\n");
                         }
-						else
-						{
-							ERROR_FLAG++;
-						}
+                        else
+                        {
+                            ERROR_FLAG++;
+                            printf("Sum Error! Sum=%x\r\n", sum);
+                        }
                     }
-					else
-					{
-						ERROR_FLAG++;
-					}
-
-                    //指令判断流程
-                    //验证文件尾
-                    //验证指令校验位
-                    //读取指令
-
-                    //标志清空
-//                    if (ERROR_FLAG != 0)
-//                    {
-//                        //发送接收错误指令 等待下一次接收
-//                    }
+                    else
+                    {
+                        ERROR_FLAG++;
+                        printf("Tail Error! Tail:%x %x\r\n", rx_buff[LEN - 2],
+                               rx_buff[LEN - 1]);
+                    }
+                    sum     = 0;
                     pointer = 0;
                     memset(rx_buff, 0, 100 * sizeof(uint8_t));
                 }
@@ -242,15 +241,25 @@ void USART1_IRQHandler(void)
             }
         }
     }
-//    USART_ClearITPendingBit(USART1, USART_IT_RXNE);
-//    USART_ClearFlag(USART1, USART_FLAG_RXNE);
+    USART_ClearITPendingBit(USART1, USART_IT_RXNE);
+    USART_ClearFlag(USART1, USART_FLAG_RXNE);
 }
+//中断向量有：
+/*USART1_IRQn
+UART4_IRQn,
+TIM6_IRQn,
+TIM7_IRQn,
+中断情况记录：
+WAITING：UART5 USART1 中断优先级USART1>UART5 逻辑改为需要上位机发送指令来读取才会给UART5发送指令让其读入，所以没有优先级，必然USART1和UART5会相继触发
+PAYING: 开启UASRT1，打开UART4和TIM7中断，TIM7设置为1S一次，打开Update中断，等待25S如果没有返回就等待1S再发送一遍读取指令，再次没有返回就停止。USART1可能会有停止命令 再已经返回后可能有校验成功或不成功的命令
+WORKING：只打开TIM6中断 Work全部在TIm6中完成。
+*/
 
-void UART4_IRQHandler(void)  
-{  
-    if(USART_GetFlagStatus(UART4, USART_FLAG_RXNE) == SET)  
-    {       
-        USART_SendData(USART1, USART_ReceiveData(UART4));             
+void UART4_IRQHandler(void)
+{
+    if (USART_GetFlagStatus(UART4, USART_FLAG_RXNE) == SET)
+    {
+        USART_SendData(USART1, USART_ReceiveData(UART4));
     }
 }
 /******************* (C) COPYRIGHT 2011 STMicroelectronics *****END OF FILE****/

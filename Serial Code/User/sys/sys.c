@@ -14,6 +14,7 @@ void sys_init(void)
     USART_Config();
     NVIC_Config();
 //		GM65_Init();
+  
 }
 
 void delay_ms(int nms)

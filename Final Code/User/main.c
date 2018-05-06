@@ -31,12 +31,9 @@ int main(void)
 //		//DAC_SetChannel2Data(DAC_Align_12b_R,3000);
 /*----------冷水--------------*/
 	//Motor_Step1();
-	DAC_SetChannel2Data(DAC_Align_12b_R,3000);
-	GPIO_ResetBits(JRS1);
-	GPIO_ResetBits(JRS2);
-	GPIO_SetBits(DCF2);
-
-	
+//Motor_Step1();
+//	Motor_Step2();
+//	
 //	DAC_SetChannel2Data(DAC_Align_12b_R,3000);
 //	delay_s(40);
 //	DAC_SetChannel2Data(DAC_Align_12b_R,0);
@@ -47,9 +44,16 @@ int main(void)
 //	GPIO_ResetBits(DCF1);
 //	Motor_Step2(); 
 	
-
-	while(1)
-	{}
+	 GPIO_SetBits(DCF1);
+	i=0;
+	while(i!=100)
+	{
+		while(GPIO_ReadInputDataBit(GPIOE,GPIO_Pin_0)==0);
+		i++;
+		while(GPIO_ReadInputDataBit(GPIOE,GPIO_Pin_0)==1);
+		
+	}
+	GPIO_ResetBits(DCF1);
 //	GPIO_ResetBits(MDJ1);
 //	delay_s(time);
 //	GPIO_SetBits(MDJ1);

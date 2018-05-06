@@ -34,11 +34,13 @@ extern long int SUCCESS_FLAG;
 int main(void)
 {
     sys_init();
-	    GM65_Init();
+
 //    printf("aa\r\n");
     //GM65_WriteCommand(0x0000,0x7F);//1
+    printf("Working\r\n");
     while (1)
     {
+        
 			  
 //			output(rx_buff);
 //		printf("SUCCESS;%ld;ERROR:%d\r\n",SUCCESS_FLAG,ERROR_FLAG);
