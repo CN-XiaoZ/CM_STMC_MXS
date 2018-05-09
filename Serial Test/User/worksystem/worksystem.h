@@ -28,12 +28,13 @@
 //Flash部分
 void Update_Sysinfo(uint8_t * Sys_info); //更新系统信息
 
-void Formula_Insert(uin8_t * Order_Buffer,uint8_t index);//加入配方
+void Formula_Insert(uint8_t * Order_Buffer,uint8_t index);//加入配方
 
 void Read_Formula(uint8_t * Order_Buffer);
 
 //事件处理部分
 void Work_Start(uint8_t * Order_Buffer);//方便调试
+uint16_t Change8to16(uint8_t HighPart,uint8_t LowPart);
 
 
 //配方最后6位为FFFFFF

@@ -2,6 +2,19 @@
 
 uint16_t Order[60][3];//数据保存
 uint8_t Config[16];
+uint8_t app_config[20];//配置信息
+/*
+app_config[0],app_config[1] 识别码//确认是不是已经写入 0x01 0xFE
+app_config[2,3] 安卓版本号
+app_config[4,5] 机器版本号
+app_config[6,7] 配方数量
+app_config[8,9] 机器ID
+app_config[10] 是否初始化,新机为1,已经写入正确信息为0
+app_config[11] USER_DATA2
+app_config[12,13] USER_DATA3
+app_config[14,15,16,17,18,19] 经纬度信息
+
+
 
 
 
@@ -22,15 +35,15 @@ uint8_t Config[16];
 //     SPI_FLASH_BufferRead(Order_Buffer,FORMULA_ADDR(index),256);
 // }
 
-// /**
-//  * OrderBuffer的格式
-//  * 每6个Byte是一条指令
-//  * Byte[0] 部件序号
-//  * Byte[1]Byte[2] 起始时间 
-//  * Byte[3]Byte[4] 关闭时间 
-//  * Byte[5]        校验位 上面的加起来取后两位
-//  * 
-//  */
+ /**
+  * OrderBuffer的格式
+  * 每6个Byte是一条指令
+  * Byte[0] 部件序号
+  * Byte[1]Byte[2] 起始时间 
+  * Byte[3]Byte[4] 关闭时间 
+  * Byte[5]        校验位 上面的加起来取后两位
+  * 
+  */
 // void Work_Start(uint8_t * Order_Buffer)
 // {
 //     uint16_t INFO[3][100]={0};
@@ -61,14 +74,14 @@ uint8_t Config[16];
 void WorkSystem_Config(void)
 {
     TIM_TimeBaseInitTypeDef TIM_TimeBaseStructure;
-    RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM6,ENABLE)
+    RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM6,ENABLE);
     TIM_TimeBaseStructure.TIM_Period = 10000-1;
     TIM_TimeBaseStructure.TIM_Prescaler = 143;
     TIM_TimeBaseInit(TIM6, &TIM_TimeBaseStructure);
 
     TIM_ClearFlag(TIM6, TIM_FLAG_Update);
-    TIM_ITConfig(BASIC_TIM,TIM_IT_Update,ENABLE);
-    TIM_Cmd(BASIC_TIM, ENABLE);
+    TIM_ITConfig(TIM6,TIM_IT_Update,ENABLE);
+    TIM_Cmd(TIM6, ENABLE);
 }
 
 void WorkSystem_Start(void)//输入配方的号码
@@ -93,11 +106,12 @@ void GetOrder(uint8_t Number)//在WorkSystem_Start函数前进行
         Order[i][2]=temp[4*i+19];
     }
     
-
-
 }
 
-
+void Write_Order(uint8_t *order)//配方号从零开始
+{
+    SPI_FLASH_BufferWrite(order,FORMULA_ADDR(Change8to16(app_config[6],app_config[7])),256);
+}
 
 uint16_t Change8to16(uint8_t HighPart,uint8_t LowPart)
 {

@@ -73,15 +73,15 @@ void USART_Config(void)
 
 int fputc(int ch, FILE *f)
 {
-    USART_SendData(DEBUG_USARTx, (uint8_t)ch);
-    while (USART_GetFlagStatus(DEBUG_USARTx, USART_FLAG_TXE) == RESET)
+    USART_SendData(USART1, (uint8_t)ch);
+    while (USART_GetFlagStatus(USART1, USART_FLAG_TXE) == RESET)
         ;
     return (ch);
 }
 
 int fgetc(FILE *f)
 {
-    while (USART_GetFlagStatus(DEBUG_USARTx, USART_FLAG_RXNE) == RESET)
+    while (USART_GetFlagStatus(USART1, USART_FLAG_RXNE) == RESET)
         ;
-    return (int)USART_ReceiveData(DEBUG_USARTx);
+    return (int)USART_ReceiveData(USART1);
 }

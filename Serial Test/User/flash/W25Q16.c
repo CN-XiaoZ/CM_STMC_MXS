@@ -9,8 +9,11 @@
  */
 #include "./flash/W25Q16.h"
 
-static __IO uint32_t SPITimeout = SPIT_LONG_TIMEOUT;
+
+
+
 static uint16_t SPI_TIMEOUT_UserCallback(uint8_t errorCode);
+static __IO uint32_t SPITimeout = SPIT_LONG_TIMEOUT;
 
 void SPI_FLASH_Init(void)
 {

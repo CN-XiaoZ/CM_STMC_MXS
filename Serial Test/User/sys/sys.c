@@ -7,12 +7,28 @@
   ******************************************************************************
   */
 #include "./sys/sys.h"
+#include "sys_config.h"
+
+extern Sys_status SYS_STATUS;
 
 void sys_init(void)
 {
+    uint8_t Default_config[20]={0};
+    Default_config[0]=0x01;
+    Default_config[1]=0xFE;
+    Default_config[10]=0x01;
     SPI_FLASH_Init();
     Motor_Config();
     USART_Config();
+    SPI_FLASH_BufferRead(app_config,SYS_INFO_ADDR,20);
+    if(app_config[0]!=0X01||app_config[1]!=0xFE)
+    {
+        SPI_FLASH_BulkErase();
+        delay_ms(1000);
+        SPI_FLASH_BufferWrite(Default_config,SYS_INFO_ADDR,20);
+        SPI_FLASH_BufferRead(app_config,SYS_INFO_ADDR,20);
+    }
+    //TODO:新机初始化向上位机请求信息
 }
 
 void delay_ms(int nms)
@@ -115,7 +131,7 @@ void Work_System_Config(void)
 
 void Sys_Status_Change(Sys_status SYS_STATUS)
 {
-    if(SYS_STATUS==WAITING)
+    if(SYS_STATUS==Sys_WAITING)
     {
         NVIC_EnableIRQ(USART1_IRQn);
         NVIC_EnableIRQ(UART5_IRQn);
@@ -123,7 +139,7 @@ void Sys_Status_Change(Sys_status SYS_STATUS)
         NVIC_DisableIRQ(TIM7_IRQn);
         NVIC_DisableIRQ(UART4_IRQn);
     }
-    else if(SYS_STATUS==PAYING)
+    else if(SYS_STATUS==Sys_PAYING)
     {
         NVIC_EnableIRQ(TIM7_IRQn);
         NVIC_EnableIRQ(USART1_IRQn);//等待停止标志
@@ -131,7 +147,7 @@ void Sys_Status_Change(Sys_status SYS_STATUS)
         NVIC_DisableIRQ(UART5_IRQn);
         NVIC_DisableIRQ(TIM6_IRQn);
     }
-    else if(SYS_STATUS==WORKING)
+    else if(SYS_STATUS==Sys_WORKING)
     {
         NVIC_DisableIRQ(USART1_IRQn);
         NVIC_EnableIRQ(TIM6_IRQn);
@@ -139,7 +155,7 @@ void Sys_Status_Change(Sys_status SYS_STATUS)
         NVIC_DisableIRQ(UART5_IRQn);
         NVIC_DisableIRQ(TIM7_IRQn);
     }
-    else if(Sys_WAITING_LOAD)
+    else if(SYS_STATUS==Sys_WAITING_LOAD)
     {
         NVIC_DisableIRQ(UART4_IRQn);
         NVIC_DisableIRQ(UART5_IRQn);

@@ -7,20 +7,35 @@
 #include "./sys/sys.h"
 #include "./usart/usart.h"
 #include "./Motor/motor.h"
+#include "./worksystem/worksystem.h"
 
-#define DAC1VOL 1.5
-#define DAC2VOL 1.5
-
-enum Sys_status
+typedef enum Sys_status
 {
     Sys_WAITING = 0,  //等待
     Sys_WASHING,      //清洗
     Sys_WAITING_LOAD, //等待装填
     Sys_PAYING,       //支付阶段
     Sys_WORKING,      //制作阶段
-};
+    Sys_DEBUG,        //调试BUG
+}Sys_status;
 
-extern int Flow_Index;//流量计序号
-extern int Flow_Count;//流量计达到流量需要值标志
+/*--------------------FLASH----------------------*/
+extern uint8_t app_config[20];//设备信息
+/*--------------------GM65----------------------*/
+
+/*--------------------Motor----------------------*/
+
+/*------------------WorkSystem--------------------*/
+extern uint8_t NEXT_ACTION;//跳转控制条件
+/*---------------------WAITING---------------------*/
+
+/*---------------------WASHING---------------------*/
+
+/*---------------------WAITING_LOAD---------------------*/
+
+/*---------------------PAYING---------------------*/
+
+/*---------------------WORKING---------------------*/
+
 
 #endif

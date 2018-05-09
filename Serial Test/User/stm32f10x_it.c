@@ -28,7 +28,6 @@
 #include "string.h"
 #include "sys_config.h"
 extern Sys_status SYS_STATUS;
-static int Motor_Flag = 0;
 /** @addtogroup STM32F10x_StdPeriph_Template
  * @{
  */
@@ -224,6 +223,7 @@ uint8_t pointer = 0;
 uint8_t rx_buff[256];
 uint8_t LEN;
 uint8_t count;
+int sum;
 void USART1_IRQHandler(void)
 {
     uint8_t temp;
@@ -237,7 +237,7 @@ void USART1_IRQHandler(void)
         }
         if (pointer == 2)
         {
-            if ((rx_buff[0] == 0x12) && (rx_buff[1] = 0x34))
+            if ((rx_buff[0] == 0x12) && (rx_buff[1] == 0x34))
             {
                 rx_buff[pointer++] = temp;
                 LEN                = temp;
@@ -258,50 +258,83 @@ void USART1_IRQHandler(void)
                 {
                     if (rx_buff[LEN - 1] == 0x2F && rx_buff[LEN - 2] == 0x1F)
                     {
-                        for (count = 2; count < LEN - 3)
+                        for (count = 2; count < LEN - 3;count++)
                         {
                             sum = rx_buff[count] + sum;
                         }
                         if (sum == rx_buff[LEN - 3])
                         {
-                            if (SYS_STATUS == WAITING) // WAITING中
+                            if (SYS_STATUS == Sys_WAITING) // WAITING中
                             {
                                 if (rx_buff[3] == 0x01)
                                 {
-                                    printf("Enter WASHING\r\n");
-                                    SYS_STATUS = WASHING;
+                                    printf("Enter Sys_WASHING\r\n");
+                                    SYS_STATUS = Sys_WASHING;
+                                    NEXT_ACTION=1;
+                                }
+                                if(rx_buff[3] == 0x02)
+                                {
+                                    printf("Enter Sys_WAITING_LOAD\r\n");
+                                    SYS_STATUS = Sys_WAITING_LOAD;
                                     NEXT_ACTION=1;
                                 }
                                 if(rx_buff[3] == 0x03)
                                 {
-                                    printf("Enter PAYING\r\n");
-                                    SYS_STATUS = PAYING;
+                                    printf("Enter Sys_PAYING\r\n");
+                                    SYS_STATUS = Sys_PAYING;
                                     NEXT_ACTION=1;
                                 }
+                                if(rx_buff[3] == 0x04)
+                                {
+                                    printf("Enter Sys_DEBUG\r\n");
+                                    SYS_STATUS = Sys_DEBUG;
+                                    NEXT_ACTION=1;
+                                }
+                                if(rx_buff[3] == 0x05)
+                                {
+                                    //TODO:返回监测数据
+                                }
+                                //TODO:机体信息接口
                             }
-                            if (SYS_STATUS == PAYING)
+                            else if (SYS_STATUS == Sys_PAYING)//序号从0x20开始
                             {
-                                if(rx_buff[3]==0x04)//不再支付，跳回WAITING
+                                if(rx_buff[3]==0x20)//不再支付，跳回WAITING
                                 {
-                                    printf("BACK TO WAITING\r\n");
-                                    SYS_STATUS=WAITING;
+                                    printf("STOP SCAN\r\n");
+                                    SYS_STATUS=Sys_WAITING;
                                     NEXT_ACTION=1;
                                 }
-                                if(rx_buff[3]==0x05)
+                                if(rx_buff[3]==0x21)
                                 {
-                                    printf("Success verify\r\n");
-                                    SYS_STATUS=WORKING;
-                                    NEXT_ACTION=1;
-                                }
-                                if(rx_buff[3]==0x06)
-                                {
-                                    printf("Fail to verify\r\n");
-                                    SYS_STATUS=WAITING;
+                                    printf("START WORK\r\n");
+                                    SYS_STATUS=Sys_WORKING;
                                     NEXT_ACTION=1;
                                 }
 
                             }
-                            if (SYS_STATUS == WORKING)
+                            else if (SYS_STATUS == Sys_DEBUG)
+                            {
+                                if(rx_buff[3]==0x06)//不再支付，跳回WAITING
+                                {
+                                    printf("STOP SCAN\r\n");
+                                    SYS_STATUS=Sys_WAITING;
+                                    NEXT_ACTION=1;
+                                }
+                                if(rx_buff[3]==0x06)
+                                {
+                                    printf("START WORK\r\n");
+                                    SYS_STATUS=Sys_WORKING;
+                                    NEXT_ACTION=1;
+                                }
+
+                            }
+                            else//Sys_WAITING_LOAD
+                            {
+                                printf("BACK TO LOAD\r\n");
+                                SYS_STATUS=Sys_WAITING;
+                                NEXT_ACTION=1;
+                            }
+                            if (SYS_STATUS == Sys_WORKING)
                             {
                                 printf("Enter WORKING\r\n");
                                 printf("FORMULA Serial Number=%x\r\n",rx_buff[3]);
