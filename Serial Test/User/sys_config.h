@@ -17,6 +17,7 @@ typedef enum Sys_status
     Sys_PAYING,       //支付阶段
     Sys_WORKING,      //制作阶段
     Sys_DEBUG,        //调试BUG
+    Sys_INIT,         //初始化状态，等待上位机传输信息
 }Sys_status;
 
 /*--------------------FLASH----------------------*/

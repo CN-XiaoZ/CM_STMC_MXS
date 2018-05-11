@@ -20,14 +20,15 @@ void sys_init(void)
     SPI_FLASH_Init();
     Motor_Config();
     USART_Config();
-    SPI_FLASH_BufferRead(app_config,SYS_INFO_ADDR,20);
-    if(app_config[0]!=0X01||app_config[1]!=0xFE)
-    {
-        SPI_FLASH_BulkErase();
-        delay_ms(1000);
-        SPI_FLASH_BufferWrite(Default_config,SYS_INFO_ADDR,20);
-        SPI_FLASH_BufferRead(app_config,SYS_INFO_ADDR,20);
-    }
+   SPI_FLASH_BufferRead(app_config,SYS_INFO_ADDR,20);
+   if(app_config[0]!=0X01||app_config[1]!=0xFE)
+   {
+       SPI_FLASH_BulkErase();
+       delay_ms(1000);
+       SPI_FLASH_BufferWrite(Default_config,SYS_INFO_ADDR,20);
+       SPI_FLASH_BufferRead(app_config,SYS_INFO_ADDR,20);
+   }
+   SYS_STATUS=Sys_INIT;
     //TODO:新机初始化向上位机请求信息
 }
 

@@ -205,13 +205,12 @@ void TIM6_IRQHandler(void)
 {
     if (TIM_GetITStatus(TIM6, TIM_IT_Update) != RESET)
     {
-        if(Order[Pos][1]==TIM6TICK)
+        if (Order[Pos][1] == TIM6TICK)
         {
-            Action(Order[Pos][0],Order[Pos][2]);
-            //特殊情况有 冲泡器// 
+            Action(Order[Pos][0], Order[Pos][2]);
+            //特殊情况有 冲泡器//
             Pos++;
         }
-        
 
         TIM6TICK++;
         TIM_ClearITPendingBit(TIM6, TIM_FLAG_Update);
@@ -258,88 +257,103 @@ void USART1_IRQHandler(void)
                 {
                     if (rx_buff[LEN - 1] == 0x2F && rx_buff[LEN - 2] == 0x1F)
                     {
-                        for (count = 2; count < LEN - 3;count++)
+                        for (count = 2; count < LEN - 3; count++)
                         {
                             sum = rx_buff[count] + sum;
                         }
                         if (sum == rx_buff[LEN - 3])
                         {
-                            if (SYS_STATUS == Sys_WAITING) // WAITING中
+                            if (SYS_STATUS == Sys_INIT)
+                            {
+                                if (rx_buff[3] == 0x00 && rx_buff[4] == 0x01 &&
+                                    rx_buff[5] == 0xFE)
+                                {
+                                    SPI_FLASH_BulkErase();
+                                    for (i = 4; i < 24; i++)
+                                    {
+                                        app_config[i - 4] = rx_buff[i];
+                                    }
+                                    SPI_FLASH_BufferWrite(app_config,
+                                                          SYS_INFO_ADDR, 20);
+                                    SYS_STATUS  = Sys_WAITING;
+                                    NEXT_ACTION = 1;
+                                }
+                            }
+                            else if (SYS_STATUS == Sys_WAITING) // WAITING中
                             {
                                 if (rx_buff[3] == 0x01)
                                 {
                                     printf("Enter Sys_WASHING\r\n");
-                                    SYS_STATUS = Sys_WASHING;
-                                    NEXT_ACTION=1;
+                                    SYS_STATUS  = Sys_WASHING;
+                                    NEXT_ACTION = 1;
                                 }
-                                if(rx_buff[3] == 0x02)
+                                if (rx_buff[3] == 0x02)
                                 {
                                     printf("Enter Sys_WAITING_LOAD\r\n");
-                                    SYS_STATUS = Sys_WAITING_LOAD;
-                                    NEXT_ACTION=1;
+                                    SYS_STATUS  = Sys_WAITING_LOAD;
+                                    NEXT_ACTION = 1;
                                 }
-                                if(rx_buff[3] == 0x03)
+                                if (rx_buff[3] == 0x03)
                                 {
                                     printf("Enter Sys_PAYING\r\n");
-                                    SYS_STATUS = Sys_PAYING;
-                                    NEXT_ACTION=1;
+                                    SYS_STATUS  = Sys_PAYING;
+                                    NEXT_ACTION = 1;
                                 }
-                                if(rx_buff[3] == 0x04)
+                                if (rx_buff[3] == 0x04)
                                 {
                                     printf("Enter Sys_DEBUG\r\n");
-                                    SYS_STATUS = Sys_DEBUG;
-                                    NEXT_ACTION=1;
+                                    SYS_STATUS  = Sys_DEBUG;
+                                    NEXT_ACTION = 1;
                                 }
-                                if(rx_buff[3] == 0x05)
+                                if (rx_buff[3] == 0x05)
                                 {
-                                    //TODO:返回监测数据
+                                    // TODO:返回监测数据
                                 }
-                                //TODO:机体信息接口
+                                // TODO:机体信息接口
                             }
-                            else if (SYS_STATUS == Sys_PAYING)//序号从0x20开始
+                            else if (SYS_STATUS == Sys_PAYING) //序号从0x20开始
                             {
-                                if(rx_buff[3]==0x20)//不再支付，跳回WAITING
+                                if (rx_buff[3] == 0x20) //不再支付，跳回WAITING
                                 {
                                     printf("STOP SCAN\r\n");
-                                    SYS_STATUS=Sys_WAITING;
-                                    NEXT_ACTION=1;
+                                    SYS_STATUS  = Sys_WAITING;
+                                    NEXT_ACTION = 1;
                                 }
-                                if(rx_buff[3]==0x21)
+                                if (rx_buff[3] == 0x21)
                                 {
                                     printf("START WORK\r\n");
-                                    SYS_STATUS=Sys_WORKING;
-                                    NEXT_ACTION=1;
+                                    SYS_STATUS  = Sys_WORKING;
+                                    NEXT_ACTION = 1;
                                 }
-
                             }
                             else if (SYS_STATUS == Sys_DEBUG)
                             {
-                                if(rx_buff[3]==0x06)//不再支付，跳回WAITING
+                                if (rx_buff[3] == 0x06) //不再支付，跳回WAITING
                                 {
                                     printf("STOP SCAN\r\n");
-                                    SYS_STATUS=Sys_WAITING;
-                                    NEXT_ACTION=1;
+                                    SYS_STATUS  = Sys_WAITING;
+                                    NEXT_ACTION = 1;
                                 }
-                                if(rx_buff[3]==0x06)
+                                if (rx_buff[3] == 0x06)
                                 {
                                     printf("START WORK\r\n");
-                                    SYS_STATUS=Sys_WORKING;
-                                    NEXT_ACTION=1;
+                                    SYS_STATUS  = Sys_WORKING;
+                                    NEXT_ACTION = 1;
                                 }
-
                             }
-                            else//Sys_WAITING_LOAD
+                            else // Sys_WAITING_LOAD
                             {
                                 printf("BACK TO LOAD\r\n");
-                                SYS_STATUS=Sys_WAITING;
-                                NEXT_ACTION=1;
+                                SYS_STATUS  = Sys_WAITING;
+                                NEXT_ACTION = 1;
                             }
                             if (SYS_STATUS == Sys_WORKING)
                             {
                                 printf("Enter WORKING\r\n");
-                                printf("FORMULA Serial Number=%x\r\n",rx_buff[3]);
-                                printf("Sugar Number=%x\r\n",rx_buff[4]);
-                                printf("Variety=%x\r\n",rx_buff[5]);
+                                printf("FORMULA Serial Number=%x\r\n",
+                                       rx_buff[3]);
+                                printf("Sugar Number=%x\r\n", rx_buff[4]);
+                                printf("Variety=%x\r\n", rx_buff[5]);
                             }
                         }
                         else
