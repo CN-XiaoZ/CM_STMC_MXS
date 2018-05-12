@@ -20,6 +20,7 @@ const uint8_t SUM_FAIL_FEEDBACK[5] = {0x12, 0x34, 0xFE, 0x1F, 0x2F};
 #define ON 0
 #define OFF 1
 uint8_t NEXT_ACTION = 0;
+//跳转统一在中断做
 /**
  * @Author: ZJU_Xizo
  * @Date: 2018-02-27 14:07:26
@@ -31,21 +32,22 @@ int main(void)
     printf("WORKING!");
     while (1)
     {
-        if (SYS_STATUS == Sys_WAITING)
+        if (SYS_STATUS == Sys_INIT)
         {
             NVIC_EnableIRQ(USART1_IRQn);
-            while (NEXT_ACTION == 0)
-                ;
-            NEXT_ACTION = 0;
+            Wait_For_Event();
         }
         else if (SYS_STATUS == Sys_WAITING)
         {
             NVIC_EnableIRQ(USART1_IRQn); //功能为等待在WAITING时期的命令
-            while (NEXT_ACTION == 0)
-                ;
-            NEXT_ACTION = 0;
+            Wait_For_Event();
         }
-        else if (SYS_STATUS == Sys_WASHING)
+        else if (SYS_STATUS == Sys_WAITING_LOAD)
+        {
+            NVIC_EnableIRQ(USART1_IRQn); //功能为等待在WAITING时期的命令
+            Wait_For_Event();
+        }
+        else if (SYS_STATUS == Sys_WASHING)//跳转这里做是因为没有必要进中断
         {
             delay_s(5); // TODO:这里之后加入清洗流程
             printf("WASHING COMPELTE\r\n");
@@ -56,15 +58,26 @@ int main(void)
         {
             NVIC_EnableIRQ(USART1_IRQn);
             NVIC_EnableIRQ(UART4_IRQn);
-            while (NEXT_ACTION == 0)
-                ;
-            NEXT_ACTION = 0;
+            Wait_For_Event();
         }
-        else // working
+        else if (SYS_STATUS == Sys_DEBUG)
+        {
+            NVIC_EnableIRQ(USART1_IRQn);
+            NVIC_EnableIRQ(UART4_IRQn);
+            Wait_For_Event();
+        }
+        if (SYS_STATUS == Sys_WORKING) // working
         {
             delay_s(2);
         }
     }
+}
+
+void Wait_For_Event(void)
+{
+    while (NEXT_ACTION == 0)
+        ;
+    NEXT_ACTION = 0;
 }
 
 /*********************************************END OF FILE**********************/

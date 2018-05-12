@@ -150,53 +150,7 @@ void SysTick_Handler(void) {}
  * @}
  */
 
-// uint16_t Pos;
-// uint16_t Time_Count;
-// void TIM6_IRQHandler(void)
-//{
-//
-//    if(TIM_GetITStatus( TIM6, TIM_IT_Update) != RESET)
-//    {
-//        if(Time_Count==Order[Pos][2])//当时间计数值等于当前位置的指令的第三位时间值
-//        {
-//            Action(Order[Pos][0],Order[Pos][1]);
-//·         }
-//        TIM_ClearITPendingBit(TIM6 , TIM_FLAG_Update);
-//    }
-//}
-uint8_t TIM6_TICK = 0;
-uint8_t PAY_FLAG  = 0; // 0，1，2
-void TIM7_IRQHandler(void)
-{
-    if (TIM_GetITStatus(TIM7, TIM_IT_Update) != RESET)
-    {
-        if (PAY_FLAG == 0) //还在正常工作
-        {
-            if (TIM6_TICK == 0)
-            {
-                //发送UART4的触发命令
-            }
-            if (TIM6_TICK == 25)
-            {
-            }
-            if (TIM6_TICK == 50)
-            {
-                //回到等待状态
-            }
-            TIM6_TICK++;
-        }
-        if (PAY_FLAG == 1) //已经接收到并发送出信息
-        {
-        }
-        if (PAY_FLAG == 2)
-        {
-            //结束
-        }
-
-        TIM_ClearITPendingBit(TIM7, TIM_FLAG_Update);
-        TIM_ClearFlag(TIM7, USART_FLAG_RXNE);
-    }
-}
+//不使用TIM7中断
 extern uint8_t Order[60][4];
 extern uint8_t Config[16];
 int TIM6TICK;
@@ -276,6 +230,12 @@ void USART1_IRQHandler(void)
                                     SPI_FLASH_BufferWrite(app_config,
                                                           SYS_INFO_ADDR, 20);
                                     SYS_STATUS  = Sys_WAITING;
+                                    NEXT_ACTION = 1;
+                                }
+                                if(rx_buff[3]==0x00 && rx_buff[4]==0x09)
+                                {
+                                    printf("Enter Sys_DEBUG");
+                                    SYS_STATUS  = Sys_DEBUG;
                                     NEXT_ACTION = 1;
                                 }
                             }

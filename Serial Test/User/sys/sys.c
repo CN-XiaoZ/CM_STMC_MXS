@@ -27,8 +27,17 @@ void sys_init(void)
        delay_ms(1000);
        SPI_FLASH_BufferWrite(Default_config,SYS_INFO_ADDR,20);
        SPI_FLASH_BufferRead(app_config,SYS_INFO_ADDR,20);
+       SYS_STATUS=Sys_INIT;
    }
-   SYS_STATUS=Sys_INIT;
+   else if(app_config[10]==0x01)
+   {
+       SYS_STATUS=Sys_INIT;
+   }
+   else
+   {
+       SYS_STATUS=Sys_WAITING;
+   }
+   
     //TODO:新机初始化向上位机请求信息
 }
 
