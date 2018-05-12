@@ -18,6 +18,14 @@
 #include "sys_config.h"
 #include "string.h"
 
+#define START_SCAN 0x01
+#define STOP_SCAN 0x02
+
+#define LEN_ERROR 1
+#define HEADER_ERROR 2
+#define SUM_ERROR 3
+#define TAIL_ERROR 4
+//自行修改为对应命令码
 
 enum Sys_status
 {
@@ -30,7 +38,8 @@ enum Sys_status
 extern uint8_t rx_buff[100];
 extern uint8_t ERROR_FLAG;
 extern long int SUCCESS_FLAG;
-
+extern int COMMAND;
+extern int ERROR_TYPE;
 int main(void)
 {
     sys_init();
@@ -40,9 +49,43 @@ int main(void)
     printf("Working\r\n");
     while (1)
     {
-        
-			  
-//			output(rx_buff);
+       switch(COMMAND)
+			 {
+				 case START_SCAN:
+					 printf("start scan!");
+					 GM65_WriteCommand(0x0002,0x41);
+						COMMAND = 0X00;
+					break;
+				 case STOP_SCAN:
+						printf("stop scan!");
+				 COMMAND = 0X00;
+					 break;
+			 }
+			 if(ERROR_TYPE)
+			{
+			 switch(ERROR_TYPE)
+			 {
+				 case LEN_ERROR:
+					 printf("Len Error! More Than 100! System Reboot\r\n");
+					ERROR_TYPE = 0;
+					 break;
+				 case HEADER_ERROR:
+					 ERROR_TYPE = 0;
+						printf("Header Error %x %x,System Reboot\r\n", rx_buff[0], rx_buff[1]);
+					 break;
+				 case SUM_ERROR:
+					 ERROR_TYPE = 0;
+				 printf("Sum Error!\r\n");
+					 break;
+				 case TAIL_ERROR:
+					 printf("Tail Error!\r\n");
+					 ERROR_TYPE = 0;
+					 break;
+			 }				
+			 }
+
+			  delay_ms(1000);
+			output(rx_buff);
 //		printf("SUCCESS;%ld;ERROR:%d\r\n",SUCCESS_FLAG,ERROR_FLAG);
 //		delay_ms(2000);
         //    if(Sys_status==WAITING)

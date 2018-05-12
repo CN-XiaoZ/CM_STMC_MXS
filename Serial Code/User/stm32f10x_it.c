@@ -150,8 +150,9 @@ void SysTick_Handler(void) {}
   */
 uint8_t rx_buff[100]  = {0};
 uint8_t ERROR_FLAG    = 0;
+int ERROR_TYPE = 0;
 long int SUCCESS_FLAG = 0;
-
+int COMMAND = 0x00;
 void USART1_IRQHandler(void)
 {
     static uint8_t pointer = 0;
@@ -174,20 +175,21 @@ void USART1_IRQHandler(void)
             if ((rx_buff[0] == 0x12) && (rx_buff[1] == 0x34))
             {
                 rx_buff[pointer++] = temp;
-                LEN = temp;
+                LEN = temp+6;
                 if (LEN > 0x64)
                 {
-                    printf("Len Error! More Than 100! System Reboot\r\n");
-                    __set_FAULTMASK(1);
+                    
+										ERROR_TYPE = 1;
+									__set_FAULTMASK(1);
                     NVIC_SystemReset();
                 }
             }
             else
             {
-                printf("Header Error %x %x,System Reboot\r\n", rx_buff[0],
-                       rx_buff[1]);
-                __set_FAULTMASK(1);
-                NVIC_SystemReset();
+                //printf("Header Error %x %x,System Reboot\r\n", rx_buff[0], rx_buff[1]);
+								ERROR_TYPE = 2;
+                //__set_FAULTMASK(1);
+                //NVIC_SystemReset();
                 rx_buff[0] = rx_buff[1];
                 rx_buff[1] = temp;
             }
@@ -211,24 +213,27 @@ void USART1_IRQHandler(void)
                         {
                             SUCCESS_FLAG++;
                             //做数据处理
+														//将命令放入变量中
+														COMMAND = rx_buff[3];
                             printf("Success! Content:");
-                            for (i = 0; i < LEN - 6; i++)
-                            {
-                                printf("%x ", rx_buff[3 + i]);
-                            }
-                            printf("\r\n");
+//                            for (i = 0; i < LEN - 6; i++)
+//                            {
+//                                printf("%x ", rx_buff[3 + i]);
+//                            }
+//                            printf("\r\n");
                         }
                         else
                         {
                             ERROR_FLAG++;
-                            printf("Sum Error! Sum=%x\r\n", sum);
+                            //printf("Sum Error! Sum=%x\r\n", sum);
+														ERROR_TYPE = 3;
                         }
                     }
                     else
                     {
                         ERROR_FLAG++;
-                        printf("Tail Error! Tail:%x %x\r\n", rx_buff[LEN - 2],
-                               rx_buff[LEN - 1]);
+												ERROR_TYPE = 4;
+                        //printf("Tail Error! Tail:%x %x\r\n", rx_buff[LEN - 2], rx_buff[LEN - 1]);
                     }
                     sum     = 0;
                     pointer = 0;

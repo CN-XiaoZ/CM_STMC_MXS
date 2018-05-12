@@ -13,7 +13,7 @@ void sys_init(void)
     SPI_FLASH_Init();
     USART_Config();
     NVIC_Config();
-//		GM65_Init();
+		GM65_Init();
   
 }
 

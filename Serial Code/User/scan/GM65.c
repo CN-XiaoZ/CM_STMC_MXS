@@ -116,7 +116,9 @@ void GM65_Send(uint8_t *command) {
   }
 }
 
-void GM65_SCAN(void) {}
+void GM65_SCAN(void) {
+	GM65_WriteCommand(0x0002,0x41);
+}
 
 void GM65_ReadCommand(uint16_t Address, uint8_t Data) {
   uint8_t command[9];
