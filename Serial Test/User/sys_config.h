@@ -19,7 +19,7 @@ typedef enum Sys_status
     Sys_DEBUG,        //调试BUG
     Sys_INIT,         //初始化状态，等待上位机传输信息
 }Sys_status;
-
+void Wait_For_Event(void);
 /*--------------------FLASH----------------------*/
 extern uint8_t app_config[20];//设备信息
 /*--------------------GM65----------------------*/

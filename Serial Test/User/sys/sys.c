@@ -9,6 +9,8 @@
 #include "./sys/sys.h"
 #include "sys_config.h"
 
+uint8_t FEEDBACK[5]={0x12, 0x34, 0x00, 0x1F, 0x2F};
+
 extern Sys_status SYS_STATUS;
 
 void sys_init(void)
@@ -16,29 +18,32 @@ void sys_init(void)
     uint8_t Default_config[20]={0};
     Default_config[0]=0x01;
     Default_config[1]=0xFE;
-    Default_config[10]=0x01;
+    Default_config[10]=0x01;//初始设置 10位为1则为需要进行初始化
     SPI_FLASH_Init();
     Motor_Config();
     USART_Config();
-   SPI_FLASH_BufferRead(app_config,SYS_INFO_ADDR,20);
-   if(app_config[0]!=0X01||app_config[1]!=0xFE)
-   {
-       SPI_FLASH_BulkErase();
+		SPI_FLASH_BufferRead(app_config,SYS_INFO_ADDR,20);
+		if(app_config[0]!=0X01||app_config[1]!=0xFE)//前两位不是标志位，代表混乱或者没有做过初始化
+		{
+       SPI_FLASH_BulkErase();//擦除FLASH
        delay_ms(1000);
-       SPI_FLASH_BufferWrite(Default_config,SYS_INFO_ADDR,20);
-       SPI_FLASH_BufferRead(app_config,SYS_INFO_ADDR,20);
+       SPI_FLASH_BufferWrite(Default_config,SYS_INFO_ADDR,20);//写入默认设置
+       SPI_FLASH_BufferRead(app_config,SYS_INFO_ADDR,20);//将默认设置读取到app_config数组
+       FEEDBACK[2]=0x00;//第二位为0x00是需要初始化的反馈
+       FeedBack(FEEDBACK,USART1,5);//发送需要信息的指令
+       SYS_STATUS=Sys_INIT;//状态改为INIT 即需要一次串口命令做初始化
+		}
+		else if(app_config[10]==0x01)//前两位是标志位，但是10位上仍然是0x01即未初始化情况，进入INIT
+		{
+			FEEDBACK[2]=0x00;//第二位为0x00是需要初始化的反馈
+       FeedBack(FEEDBACK,USART1,5);//发送需要信息的指令
        SYS_STATUS=Sys_INIT;
-   }
-   else if(app_config[10]==0x01)
-   {
-       SYS_STATUS=Sys_INIT;
-   }
+		}
    else
    {
-       SYS_STATUS=Sys_WAITING;
+       SYS_STATUS=Sys_WAITING;//不然进入WAITING状态。
    }
-   
-    //TODO:新机初始化向上位机请求信息
+
 }
 
 void delay_ms(int nms)

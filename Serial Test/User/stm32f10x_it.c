@@ -151,22 +151,29 @@ void SysTick_Handler(void) {}
  */
 
 //不使用TIM7中断
-extern uint8_t Order[60][4];
+extern uint16_t Order[60][3];
 extern uint8_t Config[16];
+extern uint8_t FEEDBACK[5];
 int TIM6TICK;
 int Pos = 0;
 void TIM6_IRQHandler(void)
 {
     if (TIM_GetITStatus(TIM6, TIM_IT_Update) != RESET)
     {
-        if (Order[Pos][1] == TIM6TICK)
+        while (Order[Pos][1] == TIM6TICK )
         {
             Action(Order[Pos][0], Order[Pos][2]);
-            //特殊情况有 冲泡器//
+						printf("MechineID:%d Time:%d ONorOFF:%d\r\n",Order[Pos][0],Order[Pos][1],Order[Pos][2]);
             Pos++;
         }
-
         TIM6TICK++;
+        if(Order[Pos][0]+Order[Pos][1]+Order[Pos][2]==0)
+        {
+            NVIC_DisableIRQ(TIM6_IRQn);
+            TIM6TICK=0;
+            Pos=0;
+        }
+        
         TIM_ClearITPendingBit(TIM6, TIM_FLAG_Update);
         TIM_ClearFlag(TIM6, USART_FLAG_RXNE);
     }
@@ -176,7 +183,7 @@ uint8_t pointer = 0;
 uint8_t rx_buff[256];
 uint8_t LEN;
 uint8_t count;
-int sum;
+uint8_t sum;
 void USART1_IRQHandler(void)
 {
     uint8_t temp;
@@ -215,53 +222,72 @@ void USART1_IRQHandler(void)
                         {
                             sum = rx_buff[count] + sum;
                         }
-                        if (sum == rx_buff[LEN - 3])
+                        if ( rx_buff[LEN - 3]==sum)
                         {
-                            if (SYS_STATUS == Sys_INIT)
-                            {
+                            if (SYS_STATUS ==
+                                Sys_INIT) // INIT里，先检查第一位是不是0x00，代表这个是INIT指令
+                            { //之后检查是不是第一位和第二位为起始标志，是的话将接收到的20和数组写入FLASH中
                                 if (rx_buff[3] == 0x00 && rx_buff[4] == 0x01 &&
                                     rx_buff[5] == 0xFE)
                                 {
                                     SPI_FLASH_BulkErase();
-                                    for (i = 4; i < 24; i++)
+                                    for (count = 4; count < 24; count++)
                                     {
-                                        app_config[i - 4] = rx_buff[i];
+                                        app_config[count - 4] = rx_buff
+                                            [count]; //数组信息复制到app_config内
                                     }
                                     SPI_FLASH_BufferWrite(app_config,
-                                                          SYS_INFO_ADDR, 20);
-                                    SYS_STATUS  = Sys_WAITING;
-                                    NEXT_ACTION = 1;
+                                                          SYS_INFO_ADDR,
+                                                          20); //写入Flash
+                                    SYS_STATUS =
+                                        Sys_WAITING; //写入完成改写系统状态为WAITING状态
+                                    NEXT_ACTION = 1; //进入下一个
                                 }
-                                if(rx_buff[3]==0x00 && rx_buff[4]==0x09)
+                                if (rx_buff[3] == 0x00 && rx_buff[4] == 0xFE)
                                 {
-                                    printf("Enter Sys_DEBUG");
+                                    FEEDBACK[2] = 0x01;
+                                    FeedBack(FEEDBACK, USART1, 5); // DEBUG
                                     SYS_STATUS  = Sys_DEBUG;
                                     NEXT_ACTION = 1;
                                 }
+																if (rx_buff[3] == 0x00 && rx_buff[4] == 0xFD)
+                                {
+                                    FEEDBACK[2] = 0x02;
+                                    FeedBack(FEEDBACK, USART1, 5); // WAITING
+                                    SYS_STATUS  = Sys_WAITING;
+                                    NEXT_ACTION = 1;
+                                }
                             }
-                            else if (SYS_STATUS == Sys_WAITING) // WAITING中
+                            else if (SYS_STATUS == Sys_WAITING) // WAITING中功能
                             {
+                                //功能：
+                                //跳转到WASHING，WAITING——LOAD，PAYING，DEBUGING，返回检测数据
                                 if (rx_buff[3] == 0x01)
                                 {
-                                    printf("Enter Sys_WASHING\r\n");
+                                    FEEDBACK[2] = 0x02;
+                                    FeedBack(FEEDBACK, USART1, 5); // WASHING
                                     SYS_STATUS  = Sys_WASHING;
                                     NEXT_ACTION = 1;
                                 }
                                 if (rx_buff[3] == 0x02)
                                 {
-                                    printf("Enter Sys_WAITING_LOAD\r\n");
+                                    FEEDBACK[2] = 0x03;
+                                    FeedBack(FEEDBACK, USART1,
+                                             5); // WAITING_LOAD
                                     SYS_STATUS  = Sys_WAITING_LOAD;
                                     NEXT_ACTION = 1;
                                 }
                                 if (rx_buff[3] == 0x03)
                                 {
-                                    printf("Enter Sys_PAYING\r\n");
+                                    FEEDBACK[2] = 0x04;
+                                    FeedBack(FEEDBACK, USART1, 5); // PAYING
                                     SYS_STATUS  = Sys_PAYING;
                                     NEXT_ACTION = 1;
                                 }
                                 if (rx_buff[3] == 0x04)
                                 {
-                                    printf("Enter Sys_DEBUG\r\n");
+                                    FEEDBACK[2] = 0x01;
+                                    FeedBack(FEEDBACK, USART1, 5); // DEBUG
                                     SYS_STATUS  = Sys_DEBUG;
                                     NEXT_ACTION = 1;
                                 }
@@ -271,59 +297,78 @@ void USART1_IRQHandler(void)
                                 }
                                 // TODO:机体信息接口
                             }
-                            else if (SYS_STATUS == Sys_PAYING) //序号从0x20开始
+                            else if (SYS_STATUS ==
+                                     Sys_PAYING) //序号从0x20开始
+                                                 //指令跳回WAITING，
                             {
                                 if (rx_buff[3] == 0x20) //不再支付，跳回WAITING
                                 {
-                                    printf("STOP SCAN\r\n");
-                                    SYS_STATUS  = Sys_WAITING;
+                                    FEEDBACK[2] = 0x06;
+                                    FeedBack(FEEDBACK, USART1, 5); // STOP SCAN
                                     NEXT_ACTION = 1;
                                 }
+                            }
+                            else if (
+                                SYS_STATUS ==
+                                Sys_DEBUG) //接收指令并执行指令内容，跳回WAITING
+                            {
                                 if (rx_buff[3] == 0x21)
                                 {
-                                    printf("START WORK\r\n");
-                                    SYS_STATUS  = Sys_WORKING;
-                                    NEXT_ACTION = 1;
-                                }
-                            }
-                            else if (SYS_STATUS == Sys_DEBUG)
-                            {
-                                if (rx_buff[3] == 0x06) //不再支付，跳回WAITING
-                                {
-                                    printf("STOP SCAN\r\n");
+                                    FEEDBACK[2] = 0x02;
+                                    FeedBack(FEEDBACK, USART1, 5); // WAITING
                                     SYS_STATUS  = Sys_WAITING;
                                     NEXT_ACTION = 1;
                                 }
-                                if (rx_buff[3] == 0x06)
+                                if (rx_buff[2] == 0xFF)
                                 {
-                                    printf("START WORK\r\n");
-                                    SYS_STATUS  = Sys_WORKING;
-                                    NEXT_ACTION = 1;
+
+                                    FEEDBACK[2] = 0x08;
+                                    FeedBack(FEEDBACK, USART1, 5);//接收到指令
+
+                                    for (count = 0; count < 9; count++)
+                                    {
+                                        Config[count] = rx_buff[count + 3];
+                                    }
+                                    for (count = 0; count < 60; count++)
+                                    {
+                                        Order[count][0] = rx_buff[4 * count + 12];
+                                        Order[count][1] =
+                                            Change8to16(rx_buff[4 * count + 13],
+                                                        rx_buff[4 * count + 14]);
+                                        Order[count][2] = rx_buff[4 * count + 15];
+                                    }
+                                    TIM6TICK=0;
+                                    Pos=0;
+                                    FEEDBACK[2] = 0x09;
+                                    FeedBack(FEEDBACK, USART1, 5);
+																		for(count=0;count<3;count++)
+																		{
+																			printf("Action(%d,%d,%d)\r\n",Order[count][0],Order[count][1],Order[count][2]);
+																		}
+																		
+																		NVIC_EnableIRQ(TIM6_IRQn);
                                 }
+                                //
                             }
-                            else // Sys_WAITING_LOAD
+                            else if (SYS_STATUS ==
+                                     Sys_WAITING_LOAD) // Sys_WAITING_LOAD
                             {
-                                printf("BACK TO LOAD\r\n");
-                                SYS_STATUS  = Sys_WAITING;
-                                NEXT_ACTION = 1;
+                                //等检测系统搞好再来
                             }
-                            if (SYS_STATUS == Sys_WORKING)
+                            else if (SYS_STATUS == Sys_WORKING)
                             {
-                                printf("Enter WORKING\r\n");
-                                printf("FORMULA Serial Number=%x\r\n",
-                                       rx_buff[3]);
-                                printf("Sugar Number=%x\r\n", rx_buff[4]);
-                                printf("Variety=%x\r\n", rx_buff[5]);
+                                FEEDBACK[2] = 0x07;
+                                FeedBack(FEEDBACK, USART1, 5); // WORKING
                             }
                         }
                         else
                         {
-                            printf("Error Sum!");
+                            printf("Error Sum! Sum=%x",sum);
                         }
                     }
                     else
                     {
-                        printf("Error Tail");
+                        printf("Error Tailrx_buff[LEN - 1] == %x && rx_buff[LEN - 2] == %x",rx_buff[LEN - 1],rx_buff[LEN - 2]);
                     }
                     sum     = 0;
                     pointer = 0;

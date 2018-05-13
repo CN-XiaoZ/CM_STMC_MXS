@@ -1,22 +1,23 @@
 /**
-  ******************************************************************************
-  * @file    main.c
-  * @author  fire
-  * @version V1.0
-  * @date    2013-xx-xx
-  * @brief   华邦 8M串行flash测试，并将测试信息通过串口1在电脑的超级终端中打印出来
-  ******************************************************************************
-  * @attention
-  *
-  * 实验平台:秉火 F103-霸道 STM32 开发板 
-  * 论坛    :http://www.firebbs.cn
-  * 淘宝    :https://fire-stm32.taobao.com
-  *
-  ******************************************************************************
-  */
+ ******************************************************************************
+ * @file    main.c
+ * @author  fire
+ * @version V1.0
+ * @date    2013-xx-xx
+ * @brief   华邦
+ *8M串行flash测试，并将测试信息通过串口1在电脑的超级终端中打印出来
+ ******************************************************************************
+ * @attention
+ *
+ * 实验平台:秉火 F103-霸道 STM32 开发板
+ * 论坛    :http://www.firebbs.cn
+ * 淘宝    :https://fire-stm32.taobao.com
+ *
+ ******************************************************************************
+ */
 #include "stm32f10x.h"
-#include "sys_config.h"
 #include "string.h"
+#include "sys_config.h"
 
 #define START_SCAN 0x01
 #define STOP_SCAN 0x02
@@ -44,50 +45,52 @@ int main(void)
 {
     sys_init();
 
-//    printf("aa\r\n");
-    //GM65_WriteCommand(0x0000,0x7F);//1
+    //    printf("aa\r\n");
+    // GM65_WriteCommand(0x0000,0x7F);//1
     printf("Working\r\n");
     while (1)
     {
-       switch(COMMAND)
-			 {
-				 case START_SCAN:
-					 printf("start scan!");
-					 GM65_WriteCommand(0x0002,0x41);
-						COMMAND = 0X00;
-					break;
-				 case STOP_SCAN:
-						printf("stop scan!");
-				 COMMAND = 0X00;
-					 break;
-			 }
-			 if(ERROR_TYPE)
-			{
-			 switch(ERROR_TYPE)
-			 {
-				 case LEN_ERROR:
-					 printf("Len Error! More Than 100! System Reboot\r\n");
-					ERROR_TYPE = 0;
-					 break;
-				 case HEADER_ERROR:
-					 ERROR_TYPE = 0;
-						printf("Header Error %x %x,System Reboot\r\n", rx_buff[0], rx_buff[1]);
-					 break;
-				 case SUM_ERROR:
-					 ERROR_TYPE = 0;
-				 printf("Sum Error!\r\n");
-					 break;
-				 case TAIL_ERROR:
-					 printf("Tail Error!\r\n");
-					 ERROR_TYPE = 0;
-					 break;
-			 }				
-			 }
+        switch (COMMAND)
+        {
+        case START_SCAN:
+            printf("start scan!");
+            GM65_WriteCommand(0x0002, 0x41);
+            COMMAND = 0X00;
+            break;
+        case STOP_SCAN:
+            printf("stop scan!");
+            COMMAND = 0X00;
+            break;
+        }
 
-			  delay_ms(1000);
-			output(rx_buff);
-//		printf("SUCCESS;%ld;ERROR:%d\r\n",SUCCESS_FLAG,ERROR_FLAG);
-//		delay_ms(2000);
+        if (ERROR_TYPE)
+        {
+            switch (ERROR_TYPE)
+            {
+            case LEN_ERROR:
+                printf("Len Error! More Than 100! System Reboot\r\n");
+                ERROR_TYPE = 0;
+                break;
+            case HEADER_ERROR:
+                ERROR_TYPE = 0;
+                printf("Header Error %x %x,System Reboot\r\n", rx_buff[0],
+                       rx_buff[1]);
+                break;
+            case SUM_ERROR:
+                ERROR_TYPE = 0;
+                printf("Sum Error!\r\n");
+                break;
+            case TAIL_ERROR:
+                printf("Tail Error!\r\n");
+                ERROR_TYPE = 0;
+                break;      
+            }
+        }
+
+        delay_ms(1000);
+        output(rx_buff);
+        //		printf("SUCCESS;%ld;ERROR:%d\r\n",SUCCESS_FLAG,ERROR_FLAG);
+        //		delay_ms(2000);
         //    if(Sys_status==WAITING)
         //    {
         //      //这个状态里有两个中断,一个TIM中断计数时间,如果30分钟没人来就开一次清洗

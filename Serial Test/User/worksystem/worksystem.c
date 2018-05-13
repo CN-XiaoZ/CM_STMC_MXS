@@ -1,7 +1,7 @@
 #include "./worksystem/worksystem.h"
 
 uint16_t Order[60][3];//数据保存
-uint8_t Config[16];
+uint8_t Config[10];
 uint8_t app_config[20];//配置信息
 /*
 app_config[0],app_config[1] 识别码//确认是不是已经写入 0x01 0xFE
@@ -75,8 +75,8 @@ void WorkSystem_Config(void)
 {
     TIM_TimeBaseInitTypeDef TIM_TimeBaseStructure;
     RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM6,ENABLE);
-    TIM_TimeBaseStructure.TIM_Period = 10000-1;
-    TIM_TimeBaseStructure.TIM_Prescaler = 143;
+    TIM_TimeBaseStructure.TIM_Period = 5000-1;
+    TIM_TimeBaseStructure.TIM_Prescaler = 1440-1;
     TIM_TimeBaseInit(TIM6, &TIM_TimeBaseStructure);
 
     TIM_ClearFlag(TIM6, TIM_FLAG_Update);
@@ -95,15 +95,15 @@ void GetOrder(uint8_t Number)//在WorkSystem_Start函数前进行
     uint16_t i;
     uint8_t temp[256];
     SPI_FLASH_BufferRead(temp,FORMULA_ADDR(Number),256);
-    for(i=0;i<16;i++)
+    for(i=0;i<10;i++)
     {
         Config[i]=temp[i];
     }
     for(i=0;i<60;i++)
     {
-        Order[i][0]=temp[4*i+16];
-        Order[i][1]=Change8to16(temp[4*i+17],temp[4*i+18]);
-        Order[i][2]=temp[4*i+19];
+        Order[i][0]=temp[4*i+10];
+        Order[i][1]=Change8to16(temp[4*i+11],temp[4*i+12]);
+        Order[i][2]=temp[4*i+13];
     }
     
 }

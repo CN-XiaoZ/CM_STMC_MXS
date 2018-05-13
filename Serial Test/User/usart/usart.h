@@ -7,5 +7,6 @@
 #include "sys_config.h"
 
 void USART_Config(void); 
+void FeedBack(uint8_t *data, USART_TypeDef *USARTx, int LEN);
 
 #endif /* __USART_H */
