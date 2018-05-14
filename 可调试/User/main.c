@@ -33,8 +33,10 @@ int main(void)
     //printf("WORKING!");
 		//打开蠕动泵，打开锅炉，看是不是蒸汽
 //着那个是RDB7
+Motor_Step1();
+	Motor_Step2(); 
 
-    
+
 	while(1)
 	{
 		delay_s(5);

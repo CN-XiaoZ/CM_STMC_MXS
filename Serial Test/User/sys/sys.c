@@ -22,6 +22,7 @@ void sys_init(void)
     SPI_FLASH_Init();
     Motor_Config();
     USART_Config();
+		Sys_TIM_Config();
 		SPI_FLASH_BufferRead(app_config,SYS_INFO_ADDR,20);
 		if(app_config[0]!=0X01||app_config[1]!=0xFE)//前两位不是标志位，代表混乱或者没有做过初始化
 		{
@@ -87,14 +88,14 @@ void NVIC_Config(void)
     NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
 
     NVIC_InitStructure.NVIC_IRQChannel                   = TIM6_IRQn;
-    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;
-    NVIC_InitStructure.NVIC_IRQChannelSubPriority        = 3;
+    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
+    NVIC_InitStructure.NVIC_IRQChannelSubPriority        = 0;
     NVIC_InitStructure.NVIC_IRQChannelCmd = DISABLE;
     NVIC_Init(&NVIC_InitStructure);
 
-    NVIC_InitStructure.NVIC_IRQChannel                   = TIM7_IRQn;
-    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;
-    NVIC_InitStructure.NVIC_IRQChannelSubPriority        = 4;
+    NVIC_InitStructure.NVIC_IRQChannel                   = TIM5_IRQn;
+    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
+    NVIC_InitStructure.NVIC_IRQChannelSubPriority        = 0;
     NVIC_InitStructure.NVIC_IRQChannelCmd = DISABLE;
     NVIC_Init(&NVIC_InitStructure);
 
@@ -121,21 +122,21 @@ void NVIC_Config(void)
 void Sys_TIM_Config(void)
 {
     TIM_TimeBaseInitTypeDef TIM_TimeBaseStructure;
-    RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM6|RCC_APB1Periph_TIM7,ENABLE);
+    RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM6|RCC_APB1Periph_TIM5,ENABLE);
     //100ms
-    TIM_TimeBaseStructure.TIM_Period=1000-1;
+    TIM_TimeBaseStructure.TIM_Period=2000-1;
     TIM_TimeBaseStructure.TIM_Prescaler= 7200-1;  
     TIM_TimeBaseInit(TIM6, &TIM_TimeBaseStructure);
-    //定时1S
-    TIM_TimeBaseStructure.TIM_Period=10000-1;
+    //定时100mS
+    TIM_TimeBaseStructure.TIM_Period=1000-1;
     TIM_TimeBaseStructure.TIM_Prescaler= 7200-1;  
-    TIM_TimeBaseInit(TIM7, &TIM_TimeBaseStructure);
+    TIM_TimeBaseInit(TIM5, &TIM_TimeBaseStructure);
     TIM_ClearFlag(TIM6, TIM_FLAG_Update);
     TIM_ITConfig(TIM6,TIM_IT_Update,ENABLE);
-    TIM_ClearFlag(TIM7, TIM_FLAG_Update);
-    TIM_ITConfig(TIM7,TIM_IT_Update,ENABLE);
+    TIM_ClearFlag(TIM5, TIM_FLAG_Update);
+    TIM_ITConfig(TIM5,TIM_IT_Update,ENABLE);
     TIM_Cmd(TIM6, ENABLE);
-    TIM_Cmd(TIM7, ENABLE);
+    TIM_Cmd(TIM5, ENABLE);
 }
 
 void Work_System_Config(void) 

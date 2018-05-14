@@ -29,6 +29,7 @@ uint8_t NEXT_ACTION = 0;
 int main(void)
 {
     sys_init();
+
     printf("WORKING!");
     while (1)
     {

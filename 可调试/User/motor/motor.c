@@ -244,7 +244,7 @@ void Motor_Step1(void)
 {
     while (GPIO_ReadInputDataBit(GPIOE, GPIO_Pin_8) == 0)
     {
-        TIM2->CCR2 = 8000;
+        TIM2->CCR2 = 9000;
         GPIO_ResetBits(GPIOA, GPIO_Pin_0);
         while (GPIO_ReadInputDataBit(GPIOE, GPIO_Pin_8) == 0)
             ;
@@ -257,7 +257,7 @@ void Motor_Step2(void)
 {
     while (GPIO_ReadInputDataBit(GPIOE, GPIO_Pin_9) == 0)
     {
-        TIM2->CCR2 = 8000;
+        TIM2->CCR2 = 9000;
         GPIO_SetBits(GPIOA, GPIO_Pin_0);
         while (GPIO_ReadInputDataBit(GPIOE, GPIO_Pin_9) == 0)
             ;
@@ -587,7 +587,7 @@ void Action(uint16_t Number, uint16_t action)
     case 31: // ZYB
         if (action == 0)
         {
-            DAC_SetChannel1Data(DAC_Align_12b_R,3000);
+            DAC_SetChannel1Data(DAC_Align_12b_R,2000);
         }
         else 
         {

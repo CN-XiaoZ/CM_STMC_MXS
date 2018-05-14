@@ -164,14 +164,19 @@ void TIM6_IRQHandler(void)
         {
             Action(Order[Pos][0], Order[Pos][2]);
 						printf("MechineID:%d Time:%d ONorOFF:%d\r\n",Order[Pos][0],Order[Pos][1],Order[Pos][2]);
-            Pos++;
+						Pos++;
         }
+				
         TIM6TICK++;
         if(Order[Pos][0]+Order[Pos][1]+Order[Pos][2]==0)
         {
-            NVIC_DisableIRQ(TIM6_IRQn);
-            TIM6TICK=0;
-            Pos=0;
+					printf("System Stop!\r\n");
+					TIM6TICK=0;
+          Pos=0;
+          NVIC_DisableIRQ(TIM6_IRQn);
+					//printf("System Stop!\r\n");
+            
+					
         }
         
         TIM_ClearITPendingBit(TIM6, TIM_FLAG_Update);
@@ -341,7 +346,7 @@ void USART1_IRQHandler(void)
                                     Pos=0;
                                     FEEDBACK[2] = 0x09;
                                     FeedBack(FEEDBACK, USART1, 5);
-																		for(count=0;count<3;count++)
+																		for(count=0;count<17;count++)
 																		{
 																			printf("Action(%d,%d,%d)\r\n",Order[count][0],Order[count][1],Order[count][2]);
 																		}

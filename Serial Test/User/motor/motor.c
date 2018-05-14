@@ -273,21 +273,27 @@ void Action(uint16_t Number, uint16_t action)
     case 0: // CPQ
         if (action == 0)
         {
+					printf("Motor_Step1 RUN");
             Motor_Step1();
+					printf("Motor_Step1 FIN");
+					
         }
         else
-        {
+        {printf("Motor_Step2 RUN");
             Motor_Step2();
+					printf("Motor_Step2 FIN");
         }
         break;
     case 1: // MDJ1
         if (action == 0)
         {
             GPIO_ResetBits(GPIOD, GPIO_Pin_10);
+					printf("MDJ1 RUN");
         }
         else
         {
             GPIO_SetBits(GPIOD, GPIO_Pin_10);
+					printf("MDJ1 OFF");
         }
         break;
     case 2: // MDJ2
@@ -305,11 +311,13 @@ void Action(uint16_t Number, uint16_t action)
         {
 
             GPIO_ResetBits(GPIOD, GPIO_Pin_11);
+					printf("JRS1(SSL) ON");
         }
         else
         {
 
             GPIO_SetBits(GPIOD, GPIO_Pin_11);
+						printf("JRS1(SSL) OFF");
         }
         break;
     case 4: // JRS2
@@ -368,40 +376,48 @@ void Action(uint16_t Number, uint16_t action)
         if (action == 0)
         {
             GPIO_SetBits(GPIOD, GPIO_Pin_14);
+					printf("DCF1 ON");
         }
         else
         {
-            GPIO_ResetBits(GPIOD, GPIO_Pin_14);
+					printf("DCF1 OFF");		
+					GPIO_ResetBits(GPIOD, GPIO_Pin_14);
         }
         break;
     case 10: // DCF2
         if (action == 0)
         {
             GPIO_SetBits(GPIOD, GPIO_Pin_15);
+					printf("DCF2 ON");
         }
         else
         {
             GPIO_ResetBits(GPIOD, GPIO_Pin_15);
+					printf("DCF2 OFF");
         }
         break;
     case 11: // DCF3
         if (action == 0)
         {
             GPIO_SetBits(GPIOG, GPIO_Pin_3);
+					printf("DCF3 ON");
         }
         else
         {
             GPIO_ResetBits(GPIOG, GPIO_Pin_3);
+					printf("DCF3 OFF");
         }
         break;
     case 12: // DCF4
         if (action == 0)
         {
             GPIO_SetBits(GPIOG, GPIO_Pin_4);
+					printf("DCF4 ON");
         }
         else
         {
             GPIO_ResetBits(GPIOG, GPIO_Pin_4);
+					printf("DCF1 OFF");
         }
         break;
     case 13: // DCF5
@@ -542,7 +558,7 @@ void Action(uint16_t Number, uint16_t action)
         else
         {
             TIM3->CCR4 = 0;
-        }
+        } 
         break;
     case 27: // RDB5
         if (action == 0)
@@ -587,10 +603,12 @@ void Action(uint16_t Number, uint16_t action)
     case 31: // ZYB
         if (action == 0)
         {
+					printf("ZYB ON");
             DAC_SetChannel1Data(DAC_Align_12b_R,3000);
         }
         else 
         {
+					printf("ZYB OFF");
             DAC_SetChannel1Data(DAC_Align_12b_R,0);
         }
 
