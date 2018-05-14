@@ -17,7 +17,7 @@ void Motor_Config(void)
     GPIO_InitTypeDef GPIO_InitStructure;
     DAC_InitTypeDef DAC_InitStructure;
 
-    RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3|RCC_APB1Periph_TIM4|RCC_APB1Periph_TIM5|RCC_APB1Periph_DAC,ENABLE);
+    RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3|RCC_APB1Periph_TIM4|RCC_APB1Periph_TIM2|RCC_APB1Periph_DAC,ENABLE);
     RCC_APB2PeriphClockCmd( RCC_APB2Periph_GPIOA|\
                             RCC_APB2Periph_GPIOB|\
                             RCC_APB2Periph_GPIOC|\
@@ -160,16 +160,16 @@ void Motor_Config(void)
     GPIO_InitStructure.GPIO_Pin = GPIO_Pin_1;
     GPIO_Init(GPIOB, &GPIO_InitStructure);
     // RDB5 TIM4_CH1
-    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_7;
-    GPIO_Init(GPIOA, &GPIO_InitStructure);
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_6;
+    GPIO_Init(GPIOB, &GPIO_InitStructure);
     // RDB6 TIM4_CH2
-    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0;
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_7;
     GPIO_Init(GPIOB, &GPIO_InitStructure);
     // RDB7 TIM4_CH3
-    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_1;
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_8;
     GPIO_Init(GPIOB, &GPIO_InitStructure);
     // DJ   TIM4_CH4
-    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_1;
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_9;
     GPIO_Init(GPIOB, &GPIO_InitStructure);
     // CPQ  TIM2_CH2
     GPIO_InitStructure.GPIO_Pin = GPIO_Pin_1;
@@ -211,11 +211,11 @@ void Motor_Config(void)
     TIM_OC2PreloadConfig(TIM2, TIM_OCPreload_Enable);
 
     TIM_ARRPreloadConfig(TIM2, ENABLE);
-    TIM_Cmd(TIM3, ENABLE);
+    TIM_Cmd(TIM2, ENABLE);
     TIM_ARRPreloadConfig(TIM3, ENABLE);
-    TIM_Cmd(TIM4, ENABLE);
+    TIM_Cmd(TIM3, ENABLE);
     TIM_ARRPreloadConfig(TIM4, ENABLE);
-    TIM_Cmd(TIM5, ENABLE);
+    TIM_Cmd(TIM4, ENABLE);
 
     /*--------------TIM_CONFIG-----------------*/
     DAC_InitStructure.DAC_Trigger        = DAC_Trigger_None;
@@ -232,19 +232,19 @@ void Motor_Config(void)
     DAC2VAL = 0;
     DAC_SetChannel1Data(DAC_Align_12b_R, DAC1VAL);
     DAC_SetChannel2Data(DAC_Align_12b_R, DAC2VAL);
-    GPIO_ResetBits(GPIOD, GPIO_Pin_8);
-    GPIO_ResetBits(GPIOD, GPIO_Pin_9);
-    GPIO_ResetBits(GPIOD, GPIO_Pin_10);
-    GPIO_ResetBits(GPIOD, GPIO_Pin_11);
-    GPIO_ResetBits(GPIOD, GPIO_Pin_12);
-    GPIO_ResetBits(GPIOD, GPIO_Pin_13);
+    GPIO_SetBits(GPIOD, GPIO_Pin_8);
+    GPIO_SetBits(GPIOD, GPIO_Pin_9);
+    GPIO_SetBits(GPIOD, GPIO_Pin_10);//MDJ1
+    GPIO_SetBits(GPIOD, GPIO_Pin_11);//JRS1(SSL)
+    GPIO_SetBits(GPIOD, GPIO_Pin_12);//JRS2(NPL)
+    GPIO_SetBits(GPIOD, GPIO_Pin_13);//MDJ2
 }
 
 void Motor_Step1(void)
 {
     while (GPIO_ReadInputDataBit(GPIOE, GPIO_Pin_8) == 0)
     {
-        TIM2->CCR2 = 5000;
+        TIM2->CCR2 = 9000;
         GPIO_ResetBits(GPIOA, GPIO_Pin_0);
         while (GPIO_ReadInputDataBit(GPIOE, GPIO_Pin_8) == 0)
             ;
@@ -257,7 +257,7 @@ void Motor_Step2(void)
 {
     while (GPIO_ReadInputDataBit(GPIOE, GPIO_Pin_9) == 0)
     {
-        TIM2->CCR2 = 5000;
+        TIM2->CCR2 = 9000;
         GPIO_SetBits(GPIOA, GPIO_Pin_0);
         while (GPIO_ReadInputDataBit(GPIOE, GPIO_Pin_9) == 0)
             ;
@@ -283,32 +283,32 @@ void Action(uint16_t Number, uint16_t action)
     case 1: // MDJ1
         if (action == 0)
         {
-            GPIO_ResetBits(GPIOD, GPIO_Pin_8);
+            GPIO_ResetBits(GPIOD, GPIO_Pin_10);
         }
         else
         {
-            GPIO_SetBits(GPIOD, GPIO_Pin_8);
+            GPIO_SetBits(GPIOD, GPIO_Pin_10);
         }
         break;
     case 2: // MDJ2
         if (action == 0)
         {
-            GPIO_ResetBits(GPIOD, GPIO_Pin_9);
+            GPIO_ResetBits(GPIOD, GPIO_Pin_13);
         }
         else
         {
-            GPIO_SetBits(GPIOD, GPIO_Pin_9);
+            GPIO_SetBits(GPIOD, GPIO_Pin_13);
         }
         break;
     case 3: // JRS1
         if (action == 0)
         {
-            GPIO_ResetBits(GPIOD, GPIO_Pin_10);
+
             GPIO_ResetBits(GPIOD, GPIO_Pin_11);
         }
         else
         {
-            GPIO_SetBits(GPIOD, GPIO_Pin_10);
+
             GPIO_SetBits(GPIOD, GPIO_Pin_11);
         }
         break;
@@ -316,12 +316,12 @@ void Action(uint16_t Number, uint16_t action)
         if (action == 0)
         {
             GPIO_ResetBits(GPIOD, GPIO_Pin_12);
-            GPIO_ResetBits(GPIOD, GPIO_Pin_13);
+            
         }
         else
         {
             GPIO_SetBits(GPIOD, GPIO_Pin_12);
-            GPIO_SetBits(GPIOD, GPIO_Pin_13);
+            
         }
         break;
     case 5: // CBDJ
@@ -551,7 +551,7 @@ void Action(uint16_t Number, uint16_t action)
         }
         else
         {
-            TIM4->CCR3 = 0;
+            TIM4->CCR1 = 0;
         }
         break;
     case 28: // RDB6
@@ -561,13 +561,13 @@ void Action(uint16_t Number, uint16_t action)
         }
         else
         {
-            TIM4->CCR3 = 0;
+            TIM4->CCR2 = 0;
         }
         break;
     case 29: // RDB7
         if (action == 0)
         {
-            TIM4->CCR3 = 7000;
+            TIM4->CCR3 = 4000;
         }
         else
         {
@@ -587,16 +587,13 @@ void Action(uint16_t Number, uint16_t action)
     case 31: // ZYB
         if (action == 0)
         {
-            DAC_SetChannel2Data(DAC_Align_12b_R,3000);
+            DAC_SetChannel1Data(DAC_Align_12b_R,3000);
         }
-        else if(action == 1)
+        else 
         {
-            DAC_SetChannel2Data(DAC_Align_12b_R,1600);
+            DAC_SetChannel1Data(DAC_Align_12b_R,0);
         }
-        else
-        {
-            DAC_SetChannel2Data(DAC_Align_12b_R,0);
-        }
+
         break;
     }
 }

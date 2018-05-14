@@ -169,7 +169,7 @@ void Motor_Config(void)
     GPIO_InitStructure.GPIO_Pin = GPIO_Pin_8;
     GPIO_Init(GPIOB, &GPIO_InitStructure);
     // DJ   TIM4_CH4
-    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_9  ;
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_9;
     GPIO_Init(GPIOB, &GPIO_InitStructure);
     // CPQ  TIM2_CH2
     GPIO_InitStructure.GPIO_Pin = GPIO_Pin_1;

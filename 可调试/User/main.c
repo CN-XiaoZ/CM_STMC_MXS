@@ -34,45 +34,11 @@ int main(void)
 		//打开蠕动泵，打开锅炉，看是不是蒸汽
 //着那个是RDB7
 
-	Action(ZYB,ON);
-	Action(DCF3,ON);
-	Action(JRS1,ON);
-	
-		while(1)
-		{
-
-
-			delay_s(5);
-		}
-
-//    while (1)
-//    {
-//        if (SYS_STATUS == Sys_WAITING)
-//        {                            
-//            NVIC_EnableIRQ(USART1_IRQn); //功能为等待在WAITING时期的命令
-//            while(NEXT_ACTION==0);
-//            NEXT_ACTION=0;
-//        }
-//        else if (SYS_STATUS == Sys_WASHING)
-//        {
-//            delay_s(5);//TODO:这里之后加入清洗流程
-//            printf("WASHING COMPELTE\r\n");
-//            SYS_STATUS=Sys_WAITING;
-//            NEXT_ACTION=0;
-//        }
-//        else if (SYS_STATUS == Sys_PAYING)
-//        {
-//            NVIC_EnableIRQ(USART1_IRQn);
-//            NVIC_EnableIRQ(UART4_IRQn);
-//            while(NEXT_ACTION==0);
-//            NEXT_ACTION=0;
-//        }
-//        else//working
-//        {
-//            delay_s(2);
-//            
-//        }
-//    }
+    
+	while(1)
+	{
+		delay_s(5);
+	}
 }
 
 /*********************************************END OF FILE**********************/
