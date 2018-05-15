@@ -51,7 +51,6 @@ int main(void)
         else if (SYS_STATUS == Sys_WASHING)//跳转这里做是因为没有必要进中断
         {
             delay_s(5); // TODO:这里之后加入清洗流程
-            printf("WASHING COMPELTE\r\n");
             SYS_STATUS  = Sys_WAITING;
             NEXT_ACTION = 0;
         }

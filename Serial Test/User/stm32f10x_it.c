@@ -160,25 +160,24 @@ void TIM6_IRQHandler(void)
 {
     if (TIM_GetITStatus(TIM6, TIM_IT_Update) != RESET)
     {
-        while (Order[Pos][1] == TIM6TICK )
+        while (Order[Pos][1] == TIM6TICK)
         {
             Action(Order[Pos][0], Order[Pos][2]);
-						printf("MechineID:%d Time:%d ONorOFF:%d\r\n",Order[Pos][0],Order[Pos][1],Order[Pos][2]);
-						Pos++;
+            printf("MechineID:%d Time:%d ONorOFF:%d\r\n", Order[Pos][0],
+                   Order[Pos][1], Order[Pos][2]);
+            Pos++;
         }
-				
+
         TIM6TICK++;
-        if(Order[Pos][0]+Order[Pos][1]+Order[Pos][2]==0)
+        if (Order[Pos][0] + Order[Pos][1] + Order[Pos][2] == 0)
         {
-					printf("System Stop!\r\n");
-					TIM6TICK=0;
-          Pos=0;
-          NVIC_DisableIRQ(TIM6_IRQn);
-					//printf("System Stop!\r\n");
-            
-					
+            printf("System Stop!\r\n");
+            TIM6TICK = 0;
+            Pos      = 0;
+            NVIC_DisableIRQ(TIM6_IRQn);
+            // printf("System Stop!\r\n");
         }
-        
+
         TIM_ClearITPendingBit(TIM6, TIM_FLAG_Update);
         TIM_ClearFlag(TIM6, USART_FLAG_RXNE);
     }
@@ -227,7 +226,7 @@ void USART1_IRQHandler(void)
                         {
                             sum = rx_buff[count] + sum;
                         }
-                        if ( rx_buff[LEN - 3]==sum)
+                        if (rx_buff[LEN - 3] == sum)
                         {
                             if (SYS_STATUS ==
                                 Sys_INIT) // INIT里，先检查第一位是不是0x00，代表这个是INIT指令
@@ -246,6 +245,8 @@ void USART1_IRQHandler(void)
                                                           20); //写入Flash
                                     SYS_STATUS =
                                         Sys_WAITING; //写入完成改写系统状态为WAITING状态
+                                    FEEDBACK[2] = 0x02;
+                                    FeedBack(FEEDBACK, USART1, 5); // WAITING
                                     NEXT_ACTION = 1; //进入下一个
                                 }
                                 if (rx_buff[3] == 0x00 && rx_buff[4] == 0xFE)
@@ -255,7 +256,7 @@ void USART1_IRQHandler(void)
                                     SYS_STATUS  = Sys_DEBUG;
                                     NEXT_ACTION = 1;
                                 }
-																if (rx_buff[3] == 0x00 && rx_buff[4] == 0xFD)
+                                if (rx_buff[3] == 0x00 && rx_buff[4] == 0xFD)
                                 {
                                     FEEDBACK[2] = 0x02;
                                     FeedBack(FEEDBACK, USART1, 5); // WAITING
@@ -269,7 +270,7 @@ void USART1_IRQHandler(void)
                                 //跳转到WASHING，WAITING——LOAD，PAYING，DEBUGING，返回检测数据
                                 if (rx_buff[3] == 0x01)
                                 {
-                                    FEEDBACK[2] = 0x02;
+                                    FEEDBACK[2] = 0x09;
                                     FeedBack(FEEDBACK, USART1, 5); // WASHING
                                     SYS_STATUS  = Sys_WASHING;
                                     NEXT_ACTION = 1;
@@ -306,10 +307,17 @@ void USART1_IRQHandler(void)
                                      Sys_PAYING) //序号从0x20开始
                                                  //指令跳回WAITING，
                             {
+                                if (rx_buff[3] == 0x1F) //不再支付，跳回WAITING
+                                {
+                                    FEEDBACK[2] = 0x05;
+                                    FeedBack(FEEDBACK, USART1, 5); // START SCAN
+                                    NEXT_ACTION = 1;
+                                }
                                 if (rx_buff[3] == 0x20) //不再支付，跳回WAITING
                                 {
                                     FEEDBACK[2] = 0x06;
                                     FeedBack(FEEDBACK, USART1, 5); // STOP SCAN
+                                    SYS_STATUS=Sys_WAITING;
                                     NEXT_ACTION = 1;
                                 }
                             }
@@ -328,7 +336,7 @@ void USART1_IRQHandler(void)
                                 {
 
                                     FEEDBACK[2] = 0x08;
-                                    FeedBack(FEEDBACK, USART1, 5);//接收到指令
+                                    FeedBack(FEEDBACK, USART1, 5); //接收到指令
 
                                     for (count = 0; count < 9; count++)
                                     {
@@ -336,22 +344,26 @@ void USART1_IRQHandler(void)
                                     }
                                     for (count = 0; count < 60; count++)
                                     {
-                                        Order[count][0] = rx_buff[4 * count + 12];
-                                        Order[count][1] =
-                                            Change8to16(rx_buff[4 * count + 13],
-                                                        rx_buff[4 * count + 14]);
-                                        Order[count][2] = rx_buff[4 * count + 15];
+                                        Order[count][0] =
+                                            rx_buff[4 * count + 12];
+                                        Order[count][1] = Change8to16(
+                                            rx_buff[4 * count + 13],
+                                            rx_buff[4 * count + 14]);
+                                        Order[count][2] =
+                                            rx_buff[4 * count + 15];
                                     }
-                                    TIM6TICK=0;
-                                    Pos=0;
+                                    TIM6TICK    = 0;
+                                    Pos         = 0;
                                     FEEDBACK[2] = 0x09;
                                     FeedBack(FEEDBACK, USART1, 5);
-																		for(count=0;count<17;count++)
-																		{
-																			printf("Action(%d,%d,%d)\r\n",Order[count][0],Order[count][1],Order[count][2]);
-																		}
-																		
-																		NVIC_EnableIRQ(TIM6_IRQn);
+                                    for (count = 0; count < 17; count++)
+                                    {
+                                        printf("Action(%d,%d,%d)\r\n",
+                                               Order[count][0], Order[count][1],
+                                               Order[count][2]);
+                                    }
+
+                                    NVIC_EnableIRQ(TIM6_IRQn);
                                 }
                                 //
                             }
@@ -368,12 +380,14 @@ void USART1_IRQHandler(void)
                         }
                         else
                         {
-                            printf("Error Sum! Sum=%x",sum);
+                            printf("Error Sum! Sum=%x", sum);
                         }
                     }
                     else
                     {
-                        printf("Error Tailrx_buff[LEN - 1] == %x && rx_buff[LEN - 2] == %x",rx_buff[LEN - 1],rx_buff[LEN - 2]);
+                        printf("Error Tailrx_buff[LEN - 1] == %x && "
+                               "rx_buff[LEN - 2] == %x",
+                               rx_buff[LEN - 1], rx_buff[LEN - 2]);
                     }
                     sum     = 0;
                     pointer = 0;
