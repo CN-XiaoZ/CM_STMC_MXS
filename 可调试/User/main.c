@@ -25,7 +25,7 @@ uint8_t NEXT_ACTION=0;
 /**
  * @Author: ZJU_Xizo
  * @Date: 2018-02-27 14:07:26
- * @Desc: Main Func
+ * @Desc: Main Func7
  */
 int main(void)
 {
@@ -36,10 +36,9 @@ int main(void)
 Motor_Step1();
 	Motor_Step2(); 
 
-
+Motor_Step2();
 	while(1)
 	{
-		delay_s(5);
 	}
 }
 
