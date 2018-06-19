@@ -26,8 +26,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f10x_it.h"
 #include "string.h"
-#include "sys_config.h"
-extern Sys_status SYS_STATUS;
+#include "usart.h"
 /** @addtogroup STM32F10x_StdPeriph_Template
  * @{
  */
@@ -149,39 +148,49 @@ void SysTick_Handler(void) {}
 /**
  * @}
  */
-
-//不使用TIM7中断
-extern uint16_t Order[60][3];
-extern uint8_t Config[16];
-extern uint8_t FEEDBACK[5];
-int TIM6TICK;
-int Pos = 0;
-
-uint8_t pointer = 0;
-uint8_t rx_buff[256];
-uint8_t LEN;
-uint8_t count;
-uint8_t sum;
+uint8_t rx_buff[100]  = {0};
+uint8_t ERROR_FLAG    = 0;
+int ERROR_TYPE        = 0;
+long int SUCCESS_FLAG = 0;
+int COMMAND           = 0x00;
 void USART1_IRQHandler(void)
 {
+    static uint8_t pointer = 0;
+    static uint8_t LEN;
+    uint8_t count = 0;
     uint8_t temp;
-    if (USART_GetITStatus(USART1, USART_IT_RXNE) != RESET)
+
+    uint16_t sum = 0;
+    int i        = 0;
+    if (USART_GetFlagStatus(USART1, USART_FLAG_RXNE) == SET)
     {
-        temp = USART_ReceiveData(USART1);
+        temp = USART_ReceiveData(USART1); //收入一个信号
         if (pointer < 2)
         {
             rx_buff[pointer++] = temp;
             return;
         }
-        if (pointer == 2)
+        if (pointer == 2) //防止缺位
         {
             if ((rx_buff[0] == 0x12) && (rx_buff[1] == 0x34))
             {
                 rx_buff[pointer++] = temp;
-                LEN                = temp;
+                LEN                = temp + 6;
+                if (LEN > 0x64)
+                {
+
+                    ERROR_TYPE = 1;
+                    __set_FAULTMASK(1);
+                    NVIC_SystemReset();
+                }
             }
             else
             {
+                // printf("Header Error %x %x,System Reboot\r\n", rx_buff[0],
+                // rx_buff[1]);
+                ERROR_TYPE = 2;
+                //__set_FAULTMASK(1);
+                // NVIC_SystemReset();
                 rx_buff[0] = rx_buff[1];
                 rx_buff[1] = temp;
             }
@@ -194,178 +203,45 @@ void USART1_IRQHandler(void)
                 rx_buff[pointer++] = temp;
                 if (pointer == LEN)
                 {
+
                     if (rx_buff[LEN - 1] == 0x2F && rx_buff[LEN - 2] == 0x1F)
                     {
                         for (count = 2; count < LEN - 3; count++)
                         {
                             sum = rx_buff[count] + sum;
                         }
-                        if (rx_buff[LEN - 3] == sum)
+                        if (sum == rx_buff[LEN - 3]) //验证校验
                         {
-                            if (SYS_STATUS ==
-                                Sys_INIT) // INIT里，先检查第一位是不是0x00，代表这个是INIT指令
-                            { //之后检查是不是第一位和第二位为起始标志，是的话将接收到的20和数组写入FLASH中
-                                if (rx_buff[3] == 0x00 && rx_buff[4] == 0x01 &&
-                                    rx_buff[5] == 0xFE)
-                                {
-                                    SPI_FLASH_BulkErase();
-                                    for (count = 4; count < 24; count++)
-                                    {
-                                        app_config[count - 4] = rx_buff
-                                            [count]; //数组信息复制到app_config内
-                                    }
-                                    SPI_FLASH_BufferWrite(app_config,
-                                                          SYS_INFO_ADDR,
-                                                          20); //写入Flash
-                                    SYS_STATUS =
-                                        Sys_WAITING; //写入完成改写系统状态为WAITING状态
-                                    FEEDBACK[2] = 0x02;
-                                    FeedBack(FEEDBACK, USART1, 5); // WAITING
-                                    NEXT_ACTION = 1; //进入下一个
-                                }
-                                if (rx_buff[3] == 0x00 && rx_buff[4] == 0xFE)
-                                {
-                                    FEEDBACK[2] = 0x01;
-                                    FeedBack(FEEDBACK, USART1, 5); // DEBUG
-                                    SYS_STATUS  = Sys_DEBUG;
-                                    NEXT_ACTION = 1;
-                                }
-                                if (rx_buff[3] == 0x00 && rx_buff[4] == 0xFD)
-                                {
-                                    FEEDBACK[2] = 0x02;
-                                    FeedBack(FEEDBACK, USART1, 5); // WAITING
-                                    SYS_STATUS  = Sys_WAITING;
-                                    NEXT_ACTION = 1;
-                                }
-                            }
-                            else if (SYS_STATUS == Sys_WAITING) // WAITING中功能
-                            {
-                                //功能：
-                                //跳转到WASHING，WAITING——LOAD，PAYING，DEBUGING，返回检测数据
-                                if (rx_buff[3] == 0x01)
-                                {
-                                    FEEDBACK[2] = 0x09;
-                                    FeedBack(FEEDBACK, USART1, 5); // WASHING
-                                    SYS_STATUS  = Sys_WASHING;
-                                    NEXT_ACTION = 1;
-                                }
-                                if (rx_buff[3] == 0x02)
-                                {
-                                    FEEDBACK[2] = 0x03;
-                                    FeedBack(FEEDBACK, USART1,
-                                             5); // WAITING_LOAD
-                                    SYS_STATUS  = Sys_WAITING_LOAD;
-                                    NEXT_ACTION = 1;
-                                }
-                                if (rx_buff[3] == 0x03)
-                                {
-                                    FEEDBACK[2] = 0x04;
-                                    FeedBack(FEEDBACK, USART1, 5); // PAYING
-                                    SYS_STATUS  = Sys_PAYING;
-                                    NEXT_ACTION = 1;
-                                }
-                                if (rx_buff[3] == 0x04)
-                                {
-                                    FEEDBACK[2] = 0x01;
-                                    FeedBack(FEEDBACK, USART1, 5); // DEBUG
-                                    SYS_STATUS  = Sys_DEBUG;
-                                    NEXT_ACTION = 1;
-                                }
-                                if (rx_buff[3] == 0x05)
-                                {
-                                    // TODO:返回监测数据
-                                }
-                                // TODO:机体信息接口
-                            }
-                            else if (SYS_STATUS ==
-                                     Sys_PAYING) //序号从0x20开始
-                                                 //指令跳回WAITING，
-                            {
-                                if (rx_buff[3] == 0x1F) //不再支付，跳回WAITING
-                                {
-                                    FEEDBACK[2] = 0x05;
-                                    FeedBack(FEEDBACK, USART1, 5); // START SCAN
-                                    NEXT_ACTION = 1;
-                                }
-                                if (rx_buff[3] == 0x20) //不再支付，跳回WAITING
-                                {
-                                    FEEDBACK[2] = 0x06;
-                                    FeedBack(FEEDBACK, USART1, 5); // STOP SCAN
-                                    SYS_STATUS=Sys_WAITING;
-                                    NEXT_ACTION = 1;
-                                }
-                            }
-                            else if (
-                                SYS_STATUS ==
-                                Sys_DEBUG) //接收指令并执行指令内容，跳回WAITING
-                            {
-                                if (rx_buff[3] == 0x21)
-                                {
-                                    FEEDBACK[2] = 0x02;
-                                    FeedBack(FEEDBACK, USART1, 5); // WAITING
-                                    SYS_STATUS  = Sys_WAITING;
-                                    NEXT_ACTION = 1;
-                                }
-                                if (rx_buff[2] == 0xFF)
-                                {
-
-                                    FEEDBACK[2] = 0x08;
-                                    FeedBack(FEEDBACK, USART1, 5); //接收到指令
-
-                                    for (count = 0; count < 9; count++)
-                                    {
-                                        Config[count] = rx_buff[count + 3];
-                                    }
-                                    for (count = 0; count < 60; count++)
-                                    {
-                                        Order[count][0] =
-                                            rx_buff[4 * count + 12];
-                                        Order[count][1] = Change8to16(
-                                            rx_buff[4 * count + 13],
-                                            rx_buff[4 * count + 14]);
-                                        Order[count][2] =
-                                            rx_buff[4 * count + 15];
-                                    }
-                                    TIM6TICK    = 0;
-                                    Pos         = 0;
-                                    FEEDBACK[2] = 0x09;
-                                    FeedBack(FEEDBACK, USART1, 5);
-                                    for (count = 0; count < 17; count++)
-                                    {
-                                        printf("Action(%d,%d,%d)\r\n",
-                                               Order[count][0], Order[count][1],
-                                               Order[count][2]);
-                                    }
-
-                                    NVIC_EnableIRQ(TIM6_IRQn);
-                                }
-                                //
-                            }
-                            else if (SYS_STATUS ==
-                                     Sys_WAITING_LOAD) // Sys_WAITING_LOAD
-                            {
-                                //等检测系统搞好再来
-                            }
-                            else if (SYS_STATUS == Sys_WORKING)
-                            {
-                                FEEDBACK[2] = 0x07;
-                                FeedBack(FEEDBACK, USART1, 5); // WORKING
-                            }
+                            SUCCESS_FLAG++;
+                            //做数据处理
+                            //将命令放入变量中
+                            COMMAND = rx_buff[3];
+                            printf("Success! Content:");
+                            //                            for (i = 0; i < LEN -
+                            //                            6; i++)
+                            //                            {
+                            //                                printf("%x ",
+                            //                                rx_buff[3 + i]);
+                            //                            }
+                            //                            printf("\r\n");
                         }
                         else
                         {
-                            printf("Error Sum! Sum=%x", sum);
+                            ERROR_FLAG++;
+                            // printf("Sum Error! Sum=%x\r\n", sum);
+                            ERROR_TYPE = 3;
                         }
                     }
                     else
                     {
-                        printf("Error Tailrx_buff[LEN - 1] == %x && "
-                               "rx_buff[LEN - 2] == %x",
-                               rx_buff[LEN - 1], rx_buff[LEN - 2]);
+                        ERROR_FLAG++;
+                        ERROR_TYPE = 4;
+                        // printf("Tail Error! Tail:%x %x\r\n", rx_buff[LEN -
+                        // 2], rx_buff[LEN - 1]);
                     }
                     sum     = 0;
                     pointer = 0;
-                    memset(rx_buff, 0, 256 * sizeof(uint8_t));
+                    memset(rx_buff, 0, 100 * sizeof(uint8_t));
                 }
                 else
                 {
@@ -377,8 +253,8 @@ void USART1_IRQHandler(void)
     USART_ClearITPendingBit(USART1, USART_IT_RXNE);
     USART_ClearFlag(USART1, USART_FLAG_RXNE);
 }
-/*
-USART1_IRQn,
+//中断向量有：
+/*USART1_IRQn
 UART4_IRQn,
 TIM6_IRQn,
 TIM7_IRQn,
@@ -387,41 +263,15 @@ WAITING：UART5 USART1 中断优先级USART1>UART5
 逻辑改为需要上位机发送指令来读取才会给UART5发送指令让其读入，所以没有优先级，必然USART1和UART5会相继触发
 PAYING:
 开启UASRT1，打开UART4和TIM7中断，TIM7设置为1S一次，打开Update中断，等待25S如果没有返回就等待1S再发送一遍读取指令，再次没有返回就停止。USART1可能会有停止命令
-再已经返回后可能有校验成功或不成功的命令
-WORKING：只打开TIM6中断 Work全部在TIm6中完成。
+再已经返回后可能有校验成功或不成功的命令 WORKING：只打开TIM6中断
+Work全部在TIm6中完成。
 */
 
-static int ERCode_Pos      = 0;
-static int ERCode_Temp[25] = {0};
 void UART4_IRQHandler(void)
 {
-    if (USART_GetITStatus(UART4, USART_IT_RXNE) != RESET)
+    if (USART_GetFlagStatus(UART4, USART_FLAG_RXNE) == SET)
     {
-        if (ERCode_Pos < 25)
-        {
-            ERCode_Temp[ERCode_Pos] = USART_ReceiveData(UART4);
-            ERCode_Pos++;
-        }
-        if (ERCode_Pos == 25)
-        {
-            //组织好指令
-            //向UASRT1传输
-            ERCode_Pos = 0;
-            memset(ERCode_Temp, 0, 25);
-        }
-    }
-    USART_ClearITPendingBit(USART1, USART_IT_RXNE);
-    USART_ClearFlag(USART1, USART_FLAG_RXNE);
-}
-
-void UART5_IRQHandler(void)
-{
-    uint8_t temp;
-    if (USART_GetITStatus(USART1, USART_IT_RXNE) != RESET)
-    {
-        temp = USART_ReceiveData(USART1);
-        USART_SendData(USART1, temp);
+        USART_SendData(USART1, USART_ReceiveData(UART4));
     }
 }
-
 /******************* (C) COPYRIGHT 2011 STMicroelectronics *****END OF FILE****/

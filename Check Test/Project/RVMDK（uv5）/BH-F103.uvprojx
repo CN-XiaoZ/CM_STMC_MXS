@@ -10,7 +10,7 @@
       <TargetName>SPI FLASH</TargetName>
       <ToolsetNumber>0x4</ToolsetNumber>
       <ToolsetName>ARM-ADS</ToolsetName>
-      <pCCUsed>5060528::V5.06 update 5 (build 528)::ARMCC</pCCUsed>
+      <pCCUsed>5060020::V5.06 (build 20)::ARMCC</pCCUsed>
       <TargetOption>
         <TargetCommonOption>
           <Device>STM32F103ZE</Device>
@@ -602,31 +602,14 @@
               <FilePath>..\..\User\sys\sys.c</FilePath>
             </File>
             <File>
-              <FileName>motor.c</FileName>
+              <FileName>check.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\User\Motor\motor.c</FilePath>
-            </File>
-            <File>
-              <FileName>GM65.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\User\GM65\GM65.c</FilePath>
-            </File>
-            <File>
-              <FileName>worksystem.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\User\worksystem\worksystem.c</FilePath>
+              <FilePath>..\..\User\check\check.c</FilePath>
             </File>
           </Files>
         </Group>
         <Group>
           <GroupName>DOC</GroupName>
-          <Files>
-            <File>
-              <FileName>readme.txt</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\..\Doc\readme.txt</FilePath>
-            </File>
-          </Files>
         </Group>
       </Groups>
     </Target>
